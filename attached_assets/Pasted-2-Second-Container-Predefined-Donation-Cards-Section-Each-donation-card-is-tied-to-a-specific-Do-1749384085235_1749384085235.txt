@@ -1,0 +1,81 @@
+2️⃣ Second Container: Predefined Donation Cards Section
+Each donation card is tied to a specific “Donation Category” created by the admin.
+🧩 Card Design:
+
+Card Heading (e.g., “Deity Seva – 5 People”)
+Amount (e.g., ₹400)
+“Donate Now” button
+📲 When “Donate Now” is clicked:
+
+Open Modal
+Fetch user’s info from login credentials (name, email, phone, address) – all editable.
+Show selected donation card title (non-editable)
+Show amount (non-editable)
+Add notes box (optional)
+Proceed to Payment
+Integrate Razorpay Gateway
+After Payment Success
+Show receipt message:
+Your donation for “Deity Seva – 5 People” was successful!
+3️⃣ Third Container: Custom Donation (Any Amount)
+🧾 Layout:
+
+One input field for amount
+“Donate Now” button
+📲 On clicking “Donate Now”:
+
+Open Modal
+Fetch user info (same as before)
+Amount shown and locked (based on user input)
+Show selected donation category (e.g., “Deity Seva” – fetch from main container heading)
+Proceed to Razorpay Payment
+After Success
+Your donation for “Deity Seva” was successful!
+4️⃣ Fourth Container: Bank Transfer Section
+🧭 Layout:
+
+Left Side: Account Details (from Admin Panel)
+Account Name
+Bank Name
+IFSC
+Account Number
+Swift Code
+Right Side: QR Code (admin-uploaded)
+✅ Admin Panel Features
+
+A. Donation Category Creation
+Fields:
+Title
+Description
+Image (Hero Section)
+This populates the First Container (client side).
+B. Predefined Donation Card Creation
+Admin selects which Donation Category this card belongs to.
+Fields:
+Card Title (e.g., “Deity Seva for 5 People”)
+Amount (e.g., ₹400)
+Description
+Image (optional)
+This populates the Second Container (client side).
+C. Bank Details Entry (for Fourth Container)
+One-time or editable form to add:
+Account Name
+Bank Name
+Account Number
+IFSC
+Swift Code
+Upload field for QR Code Image
+Displayed in the Fourth Container (client side)
+🧠 Tech Logic Summary
+
+1. Login System
+User logs in → their info is saved in session/localStorage
+Info is fetched into modal forms automatically
+2. Payment Gateway Integration
+Razorpay integration on backend (Node.js)
+Razorpay order is created via backend /api/create-payment
+Razorpay response verified via /api/verify-payment
+3. Admin to Client Content Flow
+Admin creates donation categories/cards → stored in MongoDB
+Client fetches categories/cards via public API /api/donations
+Custom amount block just pulls category name from the first container

@@ -1,0 +1,432 @@
+Temple Renovation
+Temple Renovation" how created donation card i don't want like that  i want something like in donation card your are showing differenrt donation section 1,001 2001 so on first dont show that just show heading short description then donatoe now button when user click on donate button dont show modal instead of modal show page something like that mea ussew you creatde one dety sava doantion card write know when i click on that donate now button redicte men one diffent donate card page in that donate card page there should be 3 section 1st section will be divided into wo container left and write container in left container there should be gradient background and. in that at first row left side one that donation name let i clikc in dety sava tdonate card then heading should be dety seva below that para graph take only 100 word below that para add moe read more button when user clikc on that readmore buttone one one modal show complete description of that pare it of for 1rst section left container and on right container that donate card image that’s it of left and write contain r card should have proper border radius for reference you can take this code make on donation category card page like that this is tsx “import React, { useState } from "react";
+
+import qrCode from "../../../AllDonationqrcode.png"; // Replace with your QR code image path
+import makarqr from "../../../AllDonation/assest/iskconmakarsankranticode.jpg"
+import kumbgh from "../../../AllDonation/assest/Kumbhmelacode.jpg"
+import DonateModal from "./DonateModal.tsx";
+
+import DeitySeeva from "../DonationImages/image-6164a66393bcc19.jpeg"
+
+import "./DailyDetiSevaa.css"
+
+
+
+const Alldonation: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPrice, setSelectedPrice] = useState<string>(""); // State for meal price
+
+  const handleDonate = (data: { name: string; email: string; mobile: string }) => {
+    console.log("Donation Data:", { ...data, amount: selectedPrice });
+    alert(`Thank you for your donation of ${selectedPrice}, ${data.name}!`);
+  };
+
+  const openModalWithPrice = (price: string) => {
+    setSelectedPrice(price); // Set the selected meal price
+    setIsModalOpen(true); // Open the modal
+  };
+
+ 
+
+  const openModalWithAnyPrice = () => {
+    if(selectedPrice)
+    setIsModalOpen(true);
+  };
+
+
+  
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setSelectedPrice(value === '' ? '' : value);
+  };
+
+  return (
+    <section className="donation-section-anna">
+      {/* Header */}
+
+
+      
+      {/* Information Cards */}
+      <div className="info-card-annas">
+        <div className="info-card-anna">
+          <h2 className="info-card-anna-title">Daily Deti Seeva</h2>
+          <p className="info-card-anna-description">
+          Daily deity worship, also known as "arcanā" or "pujā," holds significant importance in 
+          spiritual tradition of Vaishnavism. By incorporating daily deity worship into your routine, 
+          you can experience spiritual and practical benefits by Archa Seva or deity worship on daily routine .
+           Daily deity worship is recommended and authorized by Vaishnava scriptures, such as the Bhagavad Gita, 
+           the Bhagavata Purana, and the Hari-bhakti-vilasa
+          </p>
+          
+          <button className="read-more-button-anna">Read More</button>
+        </div>
+        <div className="info-card-anna-image">
+          <img
+            src={DeitySeeva} // Replace with the actual image path
+            alt="Food distribution"
+            height={'350px'}
+          />
+        </div>
+      </div>
+
+      {/* Meal Donation Section */}
+      {/* Makarsankranti */}
+      <h2 className="meal-donation-title-anna">Aarti Services</h2>
+      <div className="meal-options-anna">
+        {[
+          { label: "Mangal Aarti (4:30 am)", price: "3501" },
+          { label: "Sringar Aarti (7:15 am)", price: "2501" },
+          { label: "Puspa Aarti (8:30 am)", price: "2501" },
+          { label: "Raj Bhoga Aarti (12:00 pm)", price: "3501" },
+          { label: "Utthapana Aarti (4:30 pm)", price: "2501" },
+          { label: "Sandhya Aarti (7:00 pm)", price: "3501" },
+          { label: "Shayan Aarti (8:30 pm)", price: "2501" },
+          { label: "Daily Flower Garlands for all Deities", price: "11001" },
+          { label: "Deity Aitar Flower Decoration (Simple)", price: "15001" },
+         
+        ].map((meal, index) => (
+          <div key={index} className="meal-option-anna">
+            <p className="meal-label-anna">{meal.label}</p>
+            <p className="meal-price-anna">₹{meal.price}</p>
+            <button className="add-donation-button" onClick={() => openModalWithPrice(meal.price)} >Add Donation</button>
+          </div>
+        ))}
+            
+
+      </div>
+
+
+
+
+
+
+
+      
+      <div className="custome-donation" style={{background:'white',borderRadius:'10px',padding:'50px',marginTop:'10px'}}>
+  <h3 style={{marginBottom:'10px'}}>Any Donation of Your Choice </h3>
+  <input type="number" style={{width:'70%',borderRadius:'5px',marginRight:'10px',border:'1px solid',height:'50px',fontSize:'25px',fontWeight:'500',padding:'5px',marginTop:'10px'}} value={selectedPrice} onChange={handleInputChange} placeholder="Enter the Amount"></input>
+  <button style={{backgroundColor: '#faa817',color: '#fff',border: 'none',padding: '10px 15px',borderRadius: '5px',cursor: 'pointer',height:'63px',fontSize:'25px',marginTop:'10px'}}  onClick={() => openModalWithAnyPrice()}>Donate</button>
+</div>
+
+<div className="account-details">
+        <div className="account-info">
+          <h3 className="account-title">Account Details</h3>
+          <p>Indian Overseas Bank</p>
+          <p>Account Name: ISKCON Makarsankranti Fund  </p>
+          <p>IFSC Code:  IOBA0001245 </p>
+          <p>Account Number: 124501000012629 </p>
+          <p>Swift Code: IOBAINBB</p>
+        </div>
+        <div className="qr-code">
+          <h3 className="qr-title">Donate through UPI :- ISKCONMAKARSANKRANTI@IOB</h3>
+          <img src={makarqr} alt="QR Code"  style={{height:'285px',width:'300px'}}/>
+        </div>
+      </div>
+
+      <DonateModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onDonate={handleDonate}
+        mealPrice={selectedPrice} // Pass price to modal
+      />
+
+      
+      {/* <h2 className="meal-donation-title-anna">Donate for MahaKumbh Anna Daan</h2>
+      <div className="meal-options-anna">
+        {[
+          { label: "Donate 52 plates", price: "2600" },
+          { label: "Donate 100 plates", price: "5000" },
+          { label: "Donate 200 plates", price: "10000" },
+          { label: "Donate 300 plates", price: "15000" },
+          { label: "Donate 500 plates", price: "25000" },
+          { label: "Donate 1,000 plates", price: "50001" },
+          { label: "Donate 2,000 plates", price: "100001" },
+          { label: "Donate 4,000 meals", price: "200001" },
+        ].map((meal, index) => (
+          <div key={index} className="meal-option">
+            <p className="meal-label">{meal.label}</p>
+            <p className="meal-price">₹{meal.price}</p>
+            <button className="add-donation-button" onClick={() => openModalWithPrice(meal.price)} >Add Donation</button>
+          </div>
+        ))}
+
+<DonateModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onDonate={handleDonate}
+        mealPrice={selectedPrice} // Pass price to modal
+      />
+
+
+
+
+
+      </div> */}
+
+      {/* Your Own Donatio Section */}
+{/* <div className="custome-donation" style={{background:'white',borderRadius:'10px',padding:'50px',marginTop:'10px'}}>
+  <h3 style={{marginBottom:'10px'}}>Any Donation of Your Choice for Kumbhmela Anna Daan</h3>
+  <input type="number" style={{width:'70%',borderRadius:'5px',marginRight:'10px',border:'1px solid',height:'50px',fontSize:'25px',fontWeight:'500',padding:'5px',marginTop:'10px'}} value={selectedPrice} onChange={handleInputChange} placeholder="Enter the Amount"></input>
+  <button style={{backgroundColor: '#faa817',color: '#fff',border: 'none',padding: '10px 15px',borderRadius: '5px',cursor: 'pointer',height:'63px',fontSize:'25px',marginTop:'10px'}}  onClick={() => openModalWithAnyPrice()}>Donate</button>
+</div> */}
+
+{/* <div className="account-details">
+        <div className="account-info">
+          <h3 className="account-title">Account Details</h3>
+          <p>Indian Overseas Bank</p>
+          <p>Account Name: ISKCON Kumbhmela Fund  </p>
+          <p>IFSC Code:  IOBA0001245 </p>
+          <p>Account Number: 124501000014097</p>
+         
+        </div>
+        <div className="qr-code">
+          <h3 className="qr-title">Donate through UPI :- ISKCONKUMBHMELA@IOB</h3>
+          <img src={kumbgh} alt="QR Code"  style={{height:'285px',width:'300px'}}/>
+        </div>
+      </div> */}
+
+
+      {/* Receipt Information */}
+      {/* <div className="receipt-info">
+        <h3 className="receipt-title">Receipts for your donation</h3>
+        <p>
+          80G available as per Income Tax Act 1961 and rules made thereunder.
+          Tax Exemption Certificate Ref. No.: AAATI0017PF20219
+        </p>
+        <p>
+          To get the receipt of donation made through NEFT, RTGS, IMPS PayTm,
+          UPI as mentioned above, please share your legal name, postal address
+          with pincode (and PAN if you need 80G receipt) along with transaction
+          details on pranav@iskcontrust.org
+        </p>
+      </div> */}
+
+      {/* Support */}
+      {/* <div className="support-section">
+        <h3>Support</h3>
+        <p>
+          For more information please Call <b>+91-6263756519</b> from Monday to
+          Saturday between 9:00am to 6:00pm
+        </p>
+      </div> */}
+    </section>
+  );
+};
+
+export default Alldonation;
+
+
+
+“ And here is css of this code “
+/* Section Styling */
+.donation-section-anna {
+    padding: 20px;
+    background-color: #F5F3F3;
+    color: #333;
+  }
+  
+  /* Title */ƒ
+  .donation-title-anna {
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .title-underline-anna {
+    width: 100px;
+    height: 4px;
+    background-color: #faa817;
+    margin: 0 auto 20px auto;
+    border-radius: 2px;
+  }
+  
+  /* Info Cards */
+  .info-card-annas {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .info-card-anna {
+    flex: 1;
+    background: url('gradientbg.png') no-repeat center center / cover; /* Replace with the actual image path */
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .info-card-anna-title {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  
+  .info-card-anna-description {
+    margin-bottom: 20px;
+  }
+  
+  .info-card-anna-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
+  }
+  
+  .read-more-button-anna{
+    background-color: #faa817;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .info-card-anna-image img {
+    max-width: 100%;
+    
+    border-radius: 10px;
+  }
+  
+  /* Meal Options */
+  .meal-donation-title-anna {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .meal-options-anna {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .meal-option-anna {
+    background-color: #fff;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    flex: 1 1 calc(25% - 20px);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .meal-label-anna {
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+  
+  .meal-price-anna {
+    color: #faa817;
+    margin-bottom: 10px;
+  }
+  
+  .add-donation-button {
+    background-color: #faa817;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  /* Custom Donation */
+  .custom-donation-anna-title-anna {
+    font-size: 24px;
+    margin: 30px 0 10px;
+  }
+  
+  .custom-donation-anna {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .donation-input-anna {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  /* Account Details */
+  .account-details-anna {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 20px;
+  }
+  
+  .account-info-anna {
+    flex: 1;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .qr-code-anna {
+    flex: 1;
+    text-align: center;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Receipt Info */
+  .receipt-info-anna {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Support */
+  .support-section-anna {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .support-section-anna h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .support-section-anna p {
+    font-size: 14px;
+  }
+  
+  @media (max-width: 768px) {
+    .info-card-annas {
+        flex-direction: column;
+    }
+  
+    .meal-option-annas-anna {
+        flex-direction: column;
+    }
+  
+    .account-details-anna {
+        flex-direction: column;
+    }
+  }
+  
+  @media (max-width: 508px) {
+    .donation-section-anna {
+        width: 89.5%;
+    }
+  
+    .custom-donation-anna {
+        text-align: center;
+    }
+  }
+  
+“ Know after that there should be 2nd contain secont row after 1st container in that second container that should different predefined card donation e.g dety see I created 5 donation card 1st card 5 people dety seva 400 rupees and donate know button then when I click on that donate know button when open modal that from login id fetch there detain by default fetch there all detail form there login credential but it should be editable then blow that show payment amount the. Below that shod processed for payment when user proceed for payment then open payment gateway as I you create and also when. The payment happen properly for which donation card I am doing payment it showing but also add also add subheading like main heading dety deva  donating for 5 people or fetch that donation category card that’s it for 2nd section donation card and functionality , now third section there should be one input field in that I can but any amount of may then there should one donate know button. when I click on that donate know button open the modal fetch the details from login credentials then and every thing will be editable expect money when user processed for payment redirection payment gate when the payment happen from 3 section container of any donation container er just show donation for this like I take donation in dety seva in any amount field 3rd section after payment when the receipt happen show heading  Your donation for “dety seva or donation car name “  was successful!” And everything remain same and after that on 2 rounds fort 3rd section there should be two container one left hand side and one right hand side in left and side there should be account detail showing in second image and on write hand side there should qr code displayed that as work in client side know for admin side in donation acted card section first you create donation on that donation category card section add this  take heading program and image from admins user then on and placed this value on Donald card page on 1st container section left side heading and paregraph and one readmore button and place image. In right side the  on admin. Side in doantion category section also add this option predefined donation card for that donation card category  in that admin user can lets use user creatde one detysave donation card in that he added heading ,paragraph   and image write after admin user crtted differs donation card like  that card take card heading amound like this admin user Thant that card should place in donation card category section page in second card section and functionality of card I already described you right and know and then any amount input if will work form client side right so for that there not work from admin side then for know for thrift section user detail and qr code In admin side in add Account Details
+Indian Overseas Bank
+Account Name: ISKCON Makarsankranti Fund
+IFSC Code: IOBA0001245
+Account Number: 124501000012629
+Swift Code: IOBAINBB
+ This form user in but field and qr code image from admin side 
+
+
+
+

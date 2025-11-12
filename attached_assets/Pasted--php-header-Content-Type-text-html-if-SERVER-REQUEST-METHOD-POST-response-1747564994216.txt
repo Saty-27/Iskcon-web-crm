@@ -1,0 +1,183 @@
+<?php
+header('Content-Type: text/html');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $response = $_POST;
+    $status = $response['status'] ?? '';
+    $email = $response['email'] ?? '';
+    $firstname = $response['firstname'] ?? '';
+    $amount = $response['amount'] ?? '';
+    $phone = $response['phone'] ?? '';
+    $transactionId = $response['txnid'] ?? '';
+    $paymentMethod = $response['PG_TYPE'] ?? '';
+    $bankRefNum = $response['bank_ref_num'] ?? '';
+
+    echo "
+    <!DOCTYPE html>
+    <html lang='en'>
+    <head>
+        <meta charset='UTF-8'>
+        <title>Thank You | ISKCON Juhu</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+            body {
+                font-family: 'Poppins', sans-serif;
+                background: linear-gradient(to bottom right, #fffaf0, #fceabb);
+                margin: 0;
+                padding: 0;
+                color: #333;
+            }
+
+            .container {
+                max-width: 720px;
+                margin: 40px auto;
+                background: #fff;
+                border-radius: 15px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+                padding: 50px 30px;
+                text-align: center;
+                position: relative;
+            }
+
+            .logo {
+                width: 110px;
+                margin-bottom: 20px;
+            }
+
+            h1 {
+                color: #d35400;
+                font-size: 28px;
+                margin-bottom: 15px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+                color: #444;
+                margin-bottom: 30px;
+                line-height: 1.6;
+            }
+
+            .receipt {
+                text-align: left;
+                background: #fdf4e7;
+                border-left: 5px solid #e67e22;
+                border-radius: 10px;
+                padding: 25px 20px;
+                margin-bottom: 30px;
+                line-height: 1.8;
+                font-size: 15px;
+            }
+
+            .receipt strong {
+                width: 160px;
+                display: inline-block;
+                color: #000;
+            }
+
+            .footer-img {
+                width: 100%;
+                max-width: 500px;
+                margin: 30px auto 0;
+                border-radius: 10px;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            }
+
+            .button {
+                display: inline-block;
+                padding: 12px 30px;
+                background: #e67e22;
+                color: #fff;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: 600;
+                transition: background 0.3s ease;
+                margin-top: 20px;
+            }
+
+            .button:hover {
+                background: #c65f0c;
+            }
+
+            @media (max-width: 600px) {
+                .receipt strong {
+                    width: 120px;
+                }
+                .container {
+                    padding: 35px 20px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <img src='https://iskconjuhu.in/ISKCON_logo.png' alt='ISKCON Logo' class='logo'>
+            <h1>Hare Krishna, $firstname!</h1>
+            <div class='subtitle'>
+                Thank you for your kind donation towards Krishna's Prasadam distribution.<br>
+                We are blessed to have your support.
+            </div>
+            <div class='receipt'>
+                <div><strong>Email:</strong> $email</div>
+                <div><strong>Phone:</strong> $phone</div>
+                <div><strong>Transaction ID:</strong> $transactionId</div>
+                <div><strong>Amount Donated:</strong> ₹$amount</div>
+                <div><strong>Payment Method:</strong> $paymentMethod</div>
+                <div><strong>Bank Ref No.:</strong> $bankRefNum</div>
+            </div>
+            <a class='button' href='https://iskconjuhu.in'>← Back to Home</a>
+            <img src='https://iskconjuhu.in/Prabhupada_with_children.jpg' alt='Srila Prabhupada' class='footer-img' />
+        </div>
+    </body>
+    </html>
+    ";
+    http_response_code(200);
+
+} else {
+    echo "
+    <!DOCTYPE html>
+    <html lang='en'>
+    <head>
+        <meta charset='UTF-8'>
+        <title>Invalid Request | ISKCON Juhu</title>
+        <style>
+            body {
+                font-family: 'Poppins', sans-serif;
+                background-color: #fff7e6;
+                text-align: center;
+                padding: 60px 20px;
+                color: #444;
+            }
+
+            .logo {
+                width: 100px;
+                margin-bottom: 20px;
+            }
+
+            a.button {
+                display: inline-block;
+                margin-top: 30px;
+                padding: 12px 30px;
+                background-color: #e67e22;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                font-weight: 600;
+            }
+
+            a.button:hover {
+                background-color: #c85d0e;
+            }
+        </style>
+    </head>
+    <body>
+        <img src='https://iskconjuhu.in/ISKCON_logo.png' class='logo' alt='ISKCON Logo' />
+        <h1>Hare Krishna!</h1>
+        <p>This page can only be accessed via a valid donation submission.</p>
+        <a class='button' href='https://iskconjuhu.in'>← Go to Homepage</a>
+    </body>
+    </html>
+    ";
+    http_response_code(200);
+}
+?>

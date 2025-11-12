@@ -1,0 +1,65 @@
+🛠️ Admin Panel: Create & Manage Event (Modal Interface)
+When the admin clicks the “Create Event” button, a full-featured modal opens, allowing complete control over all sections of the event-based donation page:
+
+✅ 1. Event Details & Banner Section
+
+The top section of the donation page displays key event information. In the modal, the admin can:
+
+Enter the Event Title (e.g., Support Our Temple Development)
+Add/Edit a Rich Text Description
+Upload a Banner Image or Provide a URL
+Add a “Read More” Link (optional – internal or external)
+Set Event Status (Active / Inactive)
+Admin Capabilities:
+
+Create a new event
+Update or delete existing event
+Replace or edit banner and description
+Toggle event visibility on the frontend
+✅ 2. Predefined Donation Cards Management
+
+Within the same modal, the admin can dynamically add multiple predefined donation cards related to the event.
+
+Each card includes:
+
+Donation Title (e.g., Temple Equipment)
+Image Upload or URL
+Fixed Donation Amount (e.g., ₹5,001)
+Sort Order to control display sequence
+Admin Capabilities:
+
+Add unlimited cards
+Edit or delete existing cards
+Reorder cards for optimal frontend layout
+✅ 3. Custom Donation Section Setup
+
+Admins can enable a section for donors to input their own amount.
+
+Configurable Fields:
+
+Section Title (e.g., Any Donation of Your Choice for Temple Renovation)
+Toggle to Enable/Disable the custom amount option
+✅ 4. Bank & UPI Payment Details
+
+To support offline or manual donations, admins can add payment details.
+
+Fields Include:
+
+Bank Name, Account Holder Name
+Account Number, IFSC Code, SWIFT Code (optional)
+Upload UPI QR Code image
+Admin Capabilities:
+
+Update bank information at any time
+Upload/change QR code for UPI payments
+Show/hide this section as needed
+✅ 5. Centralized Event Overview
+
+Within the modal, the admin also has a compact dashboard to:
+
+View all donation cards linked to the event
+Add/edit payment and custom donation settings
+Preview how the event will appear on the frontend
+This all-in-one modal simplifies event setup while offering complete flexibility and dynamic content control — ensuring every donation event is customized, streamlined, and visually appealing to supporters.
+
+Let me know if you want the UI design or backend API endpoints next!

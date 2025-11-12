@@ -1,0 +1,202 @@
+
+/* Section Styling */
+.donation-section-anna {
+    padding: 20px;
+    background-color: #F5F3F3;
+    color: #333;
+  }
+  
+  /* Title */ƒ
+  .donation-title-anna {
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .title-underline-anna {
+    width: 100px;
+    height: 4px;
+    background-color: #faa817;
+    margin: 0 auto 20px auto;
+    border-radius: 2px;
+  }
+  
+  /* Info Cards */
+  .info-card-annas {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .info-card-anna {
+    flex: 1;
+    background: url('gradientbg.png') no-repeat center center / cover; /* Replace with the actual image path */
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .info-card-anna-title {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  
+  .info-card-anna-description {
+    margin-bottom: 20px;
+  }
+  
+  .info-card-anna-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
+  }
+  
+  .read-more-button-anna{
+    background-color: #faa817;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .info-card-anna-image img {
+    max-width: 100%;
+    
+    border-radius: 10px;
+  }
+  
+  /* Meal Options */
+  .meal-donation-title-anna {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .meal-options-anna {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .meal-option-anna {
+    background-color: #fff;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    flex: 1 1 calc(25% - 20px);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .meal-label-anna {
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+  
+  .meal-price-anna {
+    color: #faa817;
+    margin-bottom: 10px;
+  }
+  
+  .add-donation-button {
+    background-color: #faa817;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  /* Custom Donation */
+  .custom-donation-anna-title-anna {
+    font-size: 24px;
+    margin: 30px 0 10px;
+  }
+  
+  .custom-donation-anna {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .donation-input-anna {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  /* Account Details */
+  .account-details-anna {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 20px;
+  }
+  
+  .account-info-anna {
+    flex: 1;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .qr-code-anna {
+    flex: 1;
+    text-align: center;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Receipt Info */
+  .receipt-info-anna {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Support */
+  .support-section-anna {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .support-section-anna h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .support-section-anna p {
+    font-size: 14px;
+  }
+  
+  @media (max-width: 768px) {
+    .info-card-annas {
+        flex-direction: column;
+    }
+  
+    .meal-option-annas-anna {
+        flex-direction: column;
+    }
+  
+    .account-details-anna {
+        flex-direction: column;
+    }
+  }
+  
+  @media (max-width: 508px) {
+    .donation-section-anna {
+        width: 89.5%;
+    }
+  
+    .custom-donation-anna {
+        text-align: center;
+    }
+  }
+  

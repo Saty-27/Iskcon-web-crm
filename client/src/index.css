@@ -1,0 +1,982 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hero Section Custom Styles */
+.hero-heading {
+    background-color: #FAA817;
+    padding-left: 15px;
+    padding-right: 15px;
+    border-radius: 20px;
+    font-size: 50px;
+    font-weight: bold;
+    color: white;
+    display: inline-block;
+    line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+    .hero-heading {
+        font-size: 40px;
+        text-align: center;
+    }
+}
+
+/* Stats Section Styles */
+.stats-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 70px;
+    padding: 20px;
+    flex-wrap: wrap;
+    background-color: #fff;
+}
+
+.stat-box {
+    background-color: white;
+    border: 1px solid #FAA817CC;
+    border-radius: 10px;
+    padding: 20px;
+    min-width: 280px;
+    width: auto;
+    text-align: center;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-box:hover {
+    transform: scale(1.05);
+}
+
+.stat-value {
+    font-size: 50px;
+    font-weight: 700;
+    color: #FAA817CC;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-label {
+    font-size: 16px;
+    color: #333;
+    margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+    .stat-box {
+        width: 90%;
+    }
+}
+
+/* Temple Schedule Styles */
+.temple-schedule-container {
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.temple-schedule-header {
+    background-color: #f39c12;
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.temple-schedule-header h1 {
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.temple-closed-times {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.temple-schedule-columns {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .temple-schedule-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+.temple-schedule-item {
+    display: flex;
+    margin: 10px 0;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    justify-content: center;
+    align-items: center;
+}
+
+.temple-schedule-time {
+    font-size: 18px;
+    color: #333;
+    width: 80px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.temple-schedule-details {
+    text-align: center;
+    flex-grow: 1;
+}
+
+.temple-schedule-title {
+    font-size: 16px;
+    color: #000;
+    font-weight: bold;
+}
+
+.temple-schedule-description {
+    font-size: 14px;
+    color: #666;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* Hide stats when modal is open */
+body.modal-open .stats-container {
+    display: none !important;
+}
+
+body.modal-open .stat-box {
+    display: none !important;
+}
+
+.modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s ease-in-out;
+    position: relative;
+    z-index: 10000;
+}
+
+.modal-content h2 {
+    font-size: 22px;
+    font-weight: bold;
+    color: #f39c12;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #f39c12;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.close-button:hover {
+    background-color: #d27800;
+}
+
+.temple-action-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.temple-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #f39c12;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.temple-button:hover {
+    background-color: #d27800;
+}
+
+.temple-button .icon {
+    stroke-width: 1.3;
+    height: 16px;
+    width: 16px;
+    margin-bottom: 1px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.temple-button .label {
+    display: inline;
+}
+
+@media (max-width: 600px) {
+    .temple-button .label {
+        display: none;
+    }
+
+    .temple-button {
+        padding: 10px;
+        justify-content: center;
+    }
+}
+
+:root {
+  /* Base colors */
+  --primary: 288 69% 29%; /* #702963 - ISKCON purple */
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 33 100% 60%; /* #FF9933 - ISKCON orange */
+  --secondary-foreground: 0 0% 100%;
+  
+  --accent: 134 100% 26%; /* #138808 - ISKCON green */
+  --accent-foreground: 0 0% 100%;
+  
+  /* System colors */
+  --background: 48 60% 96%; /* #F8F5E6 - Neutral background */
+  --foreground: 0 0% 20%; /* #333333 - Dark text */
+  
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 20%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 20%;
+  
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  
+  --muted: 48 10% 90%;
+  --muted-foreground: 0 0% 45.1%;
+  
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  
+  --success: 142 76% 45%; /* #22C55E - Success green */
+  --success-foreground: 0 0% 100%;
+  
+  --warning: 38 92% 50%; /* #F59E0B - Warning yellow */
+  --warning-foreground: 0 0% 100%;
+  
+  --ring: var(--primary);
+  --radius: 0.5rem;
+  
+  /* Chart colors */
+  --chart-1: var(--primary);
+  --chart-2: var(--secondary);
+  --chart-3: var(--accent);
+  --chart-4: var(--success);
+  --chart-5: var(--warning);
+  
+  /* Sidebar colors */
+  --sidebar-background: var(--primary);
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: var(--secondary);
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 100%;
+  --sidebar-accent-foreground: var(--primary);
+  --sidebar-border: 288 30% 40%;
+  --sidebar-ring: var(--secondary);
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 300 80% 45%; /* Lighter purple for dark mode */
+  --primary-foreground: 0 0% 98%;
+  --secondary: 33 100% 65%; /* Lighter orange for dark mode */
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 134 80% 40%; /* Lighter green for dark mode */
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 240 4.9% 83.9%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-opensans;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-poppins font-semibold;
+  }
+  
+  .font-playfair {
+    font-family: 'Playfair Display', serif;
+  }
+  
+  .font-poppins {
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .font-opensans {
+    font-family: 'Open Sans', sans-serif;
+  }
+}
+
+/* Slider animations */
+.slide {
+  display: none;
+  animation: fade 1.5s ease-in-out;
+}
+
+.slide.active {
+  display: block;
+}
+
+@keyframes fade {
+  from {opacity: 0.7}
+  to {opacity: 1}
+}
+
+/* Temple Info Section - Unified Container */
+.temple-info-section {
+  background: #FFFFFF;
+  padding: 60px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.temple-info-section > * {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Update individual component styles to integrate with unified container */
+.temple-info-section .temple-schedule-container {
+  background: transparent !important;
+  padding: 0 0 40px 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+.temple-info-section .stats-container {
+  background: transparent !important;
+  padding: 40px 0 0 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.temple-info-section .temple-schedule-container::before,
+.temple-info-section .stats-container::before {
+  display: none !important;
+}
+
+/* Improve stats card spacing and alignment */
+.temple-info-section .stat-box {
+  flex: 0 1 250px;
+  max-width: 250px;
+  margin: 0 !important;
+}
+
+/* Center the stats section properly */
+.temple-info-section .stats-container {
+  padding-left: 20px;
+  padding-right: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Donation Section Styling - From Reference */
+.donation-section-anna {
+  padding: 20px;
+  background-color: #F5F3F3;
+  color: #333;
+}
+
+.donation-title-anna {
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.title-underline-anna {
+  width: 100px;
+  height: 4px;
+  background-color: #faa817;
+  margin: 0 auto 20px auto;
+  border-radius: 2px;
+}
+
+/* Info Cards */
+.info-card-annas {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.info-card-anna {
+  flex: 1;
+  background: linear-gradient(135deg, #8B5A96 0%, #6B4C7A 100%);
+  color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.info-card-anna-title {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.info-card-anna-description {
+  margin-bottom: 20px;
+}
+
+.read-more-button-anna {
+  background-color: #faa817;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.info-card-anna-image img {
+  max-width: 100%;
+  border-radius: 10px;
+}
+
+/* Meal Options */
+.meal-donation-title-anna {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.meal-options-anna {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.meal-option-anna {
+  background-color: #fff;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  flex: 1 1 calc(25% - 20px);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.meal-label-anna {
+  font-size: 16px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.meal-price-anna {
+  color: #faa817;
+  margin-bottom: 10px;
+}
+
+.add-donation-button {
+  background-color: #faa817;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Account Details */
+.account-details {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  gap: 20px;
+}
+
+.account-info {
+  flex: 1;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.qr-code {
+  flex: 1;
+  text-align: center;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .info-card-annas {
+    flex-direction: column;
+  }
+
+  .account-details {
+    flex-direction: column;
+  }
+}
+
+/* Current Events Section Styling */
+.current-events-section {
+  padding: 60px 20px;
+  background-color: #ffffff;
+  color: #333;
+}
+
+.current-events-title {
+  text-align: center;
+  font-size: 48px;
+  font-weight: bold;
+  color: #7B2CBF;
+  margin-bottom: 10px;
+  font-family: "Poppins", sans-serif;
+}
+
+.title-underline {
+  width: 100px;
+  height: 4px;
+  background-color: #faa817;
+  margin: 0 auto 20px auto;
+  border-radius: 2px;
+}
+
+.current-events-subtitle {
+  text-align: center;
+  font-size: 18px;
+  max-width: 600px;
+  margin: 0 auto 40px;
+  color: #666;
+  font-family: "Open Sans", sans-serif;
+}
+
+.current-events-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.current-event-card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: row;
+  min-height: 200px;
+  border: 1px solid #f0f0f0;
+}
+
+.current-event-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.event-image-container {
+  flex: 0 0 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.event-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.current-event-card:hover .event-image {
+  transform: scale(1.05);
+}
+
+.event-content {
+  flex: 1;
+  padding: 25px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.event-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #7B2CBF;
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  line-height: 1.2;
+  flex: 1;
+  padding-right: 15px;
+}
+
+.event-date {
+  background-color: #faa817;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 25px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  font-family: "Poppins", sans-serif;
+  position: absolute;
+  top: 0;
+  right: 0;
+  box-shadow: 0 2px 8px rgba(250, 168, 23, 0.3);
+}
+
+.event-description-container {
+  margin-bottom: 15px;
+  flex: 1;
+}
+
+.event-description-preview {
+  color: #666;
+  line-height: 1.6;
+  font-family: "Open Sans", sans-serif;
+  font-size: 14px;
+}
+
+.event-description-full {
+  color: #666;
+  line-height: 1.6;
+  font-family: "Open Sans", sans-serif;
+  font-size: 14px;
+}
+
+.read-more-btn {
+  color: #7B2CBF;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 5px;
+  transition: color 0.3s ease;
+}
+
+.read-more-btn:hover {
+  color: #faa817;
+  text-decoration: underline;
+}
+
+.full-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.suggested-amounts {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.amount-tag {
+  background-color: #f8f4ff;
+  color: #7B2CBF;
+  padding: 6px 14px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 2px solid #e0d4f7;
+  font-family: "Poppins", sans-serif;
+  transition: all 0.2s ease;
+}
+
+.amount-tag:hover {
+  background-color: #7B2CBF;
+  color: white;
+  border-color: #7B2CBF;
+}
+
+.donate-event-button {
+  background-color: #7B2CBF;
+  color: white;
+  border: none;
+  padding: 14px 30px;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  width: 100%;
+  margin-top: auto;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(123, 44, 191, 0.3);
+}
+
+.donate-event-button:hover {
+  background-color: #faa817;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(250, 168, 23, 0.4);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design for Current Events */
+@media (max-width: 768px) {
+  .current-events-title {
+    font-size: 36px;
+  }
+  
+  .current-events-grid {
+    gap: 20px;
+  }
+  
+  .current-event-card {
+    flex-direction: column;
+    min-height: auto;
+  }
+  
+  .event-image-container {
+    flex: 0 0 200px;
+  }
+  
+  .event-content {
+    padding: 20px;
+  }
+  
+  .event-header {
+    margin-bottom: 15px;
+  }
+  
+  .event-title {
+    font-size: 22px;
+    padding-right: 80px;
+  }
+  
+  .event-date {
+    position: absolute;
+    top: -5px;
+    right: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .current-events-section {
+    padding: 40px 15px;
+  }
+  
+  .current-events-title {
+    font-size: 28px;
+  }
+  
+  .current-events-subtitle {
+    font-size: 16px;
+  }
+}
+
+/* Receipt Info Styling for Current Events */
+.current-events-section .receipt-info {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 30px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.current-events-section .receipt-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #7B2CBF;
+  font-family: "Poppins", sans-serif;
+}
+
+.current-events-section .receipt-info p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 10px;
+  color: #666;
+  font-family: "Open Sans", sans-serif;
+}
+
+/* Support Section Styling for Current Events */
+.current-events-section .support-section {
+  margin-top: 20px;
+  text-align: center;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.current-events-section .support-section h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #7B2CBF;
+  font-family: "Poppins", sans-serif;
+}
+
+.current-events-section .support-section p {
+  font-size: 14px;
+  color: #666;
+  font-family: "Open Sans", sans-serif;
+}
+
+.current-events-section .support-section b {
+  color: #faa817;
+  font-weight: 600;
+}
+
+/* Process Section Styling */
+.process-section {
+  padding: 40px;
+  background-color: #f9f9f9;
+  text-align: center;
+  font-family: "Poppins", sans-serif;
+}
+
+.process-title {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #4B0082;
+}
+
+.title-underline {
+  width: 100px;
+  height: 4px;
+  background-color: #faa817;
+  margin: 0 auto 20px;
+  border-radius: 2px;
+}
+
+.process-image-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.desktop-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.mobile-image {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-image {
+    display: none;
+  }
+
+  .mobile-image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Onboarding Tour Styles */
+.tour-highlight {
+  position: relative;
+  z-index: 51;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 8px rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  animation: tour-pulse 2s ease-in-out infinite;
+}
+
+@keyframes tour-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 8px rgba(59, 130, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.7), 0 0 0 12px rgba(59, 130, 246, 0.1);
+  }
+}

@@ -1,0 +1,154 @@
+. Project Overview
+
+You want to convert your current static site iskconjuhu.in into a full dynamic system with:
+
+Client-side frontend for users (donors, visitors)
+Admin panel frontend to manage all content and donations
+Backend API server (Node.js + Express + MongoDB) to serve data and handle logic
+Payment gateway integration (PayU preferred)
+User authentication (donor login/register/profile)
+2. Frontend - Client Side Pages & Components
+
+Pages:
+/home (dynamic hero slider, quotes, donation sections, events, video/gallery/testimonials, contact form)
+/donate (all donation categories with cards and modal forms)
+/events (current event donations)
+/gallery (image gallery)
+/videos (video gallery)
+/contact (contact form)
+/login & /register (user auth)
+/profile (user dashboard with donation history)
+Key Features:
+React + TypeScript
+TailwindCSS for responsive styling
+React Router for SPA navigation
+Axios/Fetch for API calls
+React Player for YouTube embedding
+Modals for descriptions & donation input forms
+Responsive images (desktop/tablet/mobile)
+3. Admin Panel - Pages & Components
+
+Features:
+Admin login + dashboard
+Manage banners/sliders (hero and tile images)
+Manage donation sections & categories (with title, descriptions, cards with amounts)
+Manage current event donation section (title, cards, custom donation input)
+Manage gallery images (max 20 with upload/delete)
+Manage video gallery (YouTube links)
+Manage testimonials (title, paragraph, image)
+Manage quotes (with delay timing)
+Manage footer contact form submissions (view messages)
+Manage social media icons/links
+View user donation stats (per user, total donations, etc.)
+CRUD user accounts (if needed)
+4. Backend API - Node.js + Express + MongoDB
+
+Core APIs:
+Feature	API Endpoint	Method	Purpose
+Banners	/api/banner	GET	Fetch banners/sliders
+Quotes	/api/quotes	GET	Fetch rotating quotes
+Donation Sections	/api/donations/sections	GET	Fetch donation sections & categories
+Current Events	/api/events/current	GET	Fetch current event donation data
+Custom Donation	/api/donations/custom	POST	Submit custom donation
+Gallery Images	/api/gallery/images	GET	Fetch gallery images
+Upload Gallery Image	/api/gallery/images	POST	Upload new gallery image
+Delete Gallery Image	/api/gallery/images/:id	DELETE	Delete gallery image
+Video Gallery	/api/video-gallery	GET	Fetch YouTube video gallery
+Testimonials	/api/testimonials	GET	Fetch testimonials
+Contact Form Submit	/api/contact	POST	Submit contact message
+Social Media Links	/api/social-links	GET	Fetch social media icons and URLs
+User Authentication	/api/auth/login	POST	User login
+User Registration	/api/auth/register	POST	User register
+User Profile	/api/user/profile	GET	Get user profile data
+User Donation History	/api/user/donations	GET	Get user's donation history
+Admin Dashboard Stats	/api/admin/dashboard	GET	Admin stats (users, donations, etc.)
+5. Payment Gateway Integration
+
+Integrate PayU gateway API
+Payment options: UPI, debit/credit card, net banking
+Redirect user from donation modal's donate button to payment page
+Backend webhook to verify payment and update donation status
+6. Development Environment Setup
+
+A. Using Replit (Online IDE)
+Create three Replit projects:
+iskconjuhu-client — React + TypeScript frontend
+iskconjuhu-admin — React + TypeScript admin panel
+iskconjuhu-backend — Node.js + Express + MongoDB API server
+Connect Replit projects to MongoDB Atlas:
+Create a free MongoDB Atlas cluster
+Get connection string and set as environment variable in backend Replit project (MONGO_URI)
+In Backend:
+Implement API routes as above
+Use cors middleware to allow frontend/admin to access backend
+Implement user auth with JWT or session tokens
+Use multer for image upload APIs
+Implement PayU payment integration and webhook
+In Frontend (client & admin):
+Use React Router for page routing
+Axios for API calls to backend URLs
+Create forms, modals, and components based on above design
+Run all projects concurrently:
+You can open separate Replit tabs for frontend, admin, and backend
+Use Replit's "Run" button or npm start
+B. Local Setup Guide (Windows/Linux/Mac)
+Prerequisites:
+Install Node.js
+Install Git
+Install MongoDB locally or use MongoDB Atlas cloud
+Install a code editor like VSCode
+Clone repositories:
+git clone <your-client-repo-url>
+git clone <your-admin-repo-url>
+git clone <your-backend-repo-url>
+Backend Setup:
+cd iskconjuhu-backend
+npm install
+# Set environment variables (create a .env file)
+# Example .env
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+PAYU_MERCHANT_KEY=your_payu_key
+PAYU_MERCHANT_SALT=your_payu_salt
+PORT=5000
+
+npm run dev
+# Backend server runs on http://localhost:5000
+Frontend Setup:
+cd iskconjuhu-client
+npm install
+npm start
+# Runs at http://localhost:3000
+
+cd ../iskconjuhu-admin
+npm install
+npm start
+# Runs at http://localhost:3001 (or different port)
+Adjust API URLs in frontend to http://localhost:5000/api/...
+Test end-to-end flows:
+Admin login, manage content
+Frontend fetches and displays content dynamically
+User registration/login
+Donation payment flow
+7. Suggested Folder Structure
+
+/iskconjuhu-client
+  /src
+    /components
+    /pages
+    /api (API helper functions)
+    /styles
+
+/iskconjuhu-admin
+  /src
+    /components
+    /pages
+    /api (API calls for admin)
+/iskconjuhu-backend
+  /controllers
+  /models
+  /routes
+  /middleware
+  /utils
+  server.js (or app.js)
+  config.js 

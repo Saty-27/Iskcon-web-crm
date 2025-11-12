@@ -1,0 +1,36 @@
+🧩 The Problem (Step-by-Step):
+🐞 1. Creation:
+
+I created a donation card inside a category (e.g., "Shiv Daan") from the Admin Panel.
+After clicking "Create", the card is saved in the database.
+However, it does NOT display in the frontend (under the correct donation category) immediately.
+When I check the database or refresh the admin panel, the card is there, but not rendering in frontend.
+✅ 2. Manual Fix (Temporary):
+
+If I manually click "Edit" on that donation card in the Admin Panel,
+Then enter the details again (payment details, amount, image),
+And click “Update” → only then does it show up properly in the frontend.
+❌ Problem Summary:
+
+The data from initial creation is not fully saved or not fetched/rendered correctly.
+It requires an update manually to reflect properly.
+This is inefficient. I want it to work immediately after creation.
+🔁 Problem in Payment Details:
+Each donation card (like "Shiv Daan") has its own unique payment details (QR image, account, UPI).
+But on the frontend, all donation cards are showing the same global/common payment detail.
+Even if I add unique payment info per card in the admin → frontend still shows only the first or default payment data.
+🧪 Admin Panel Modal Edit Bug:
+When I click "Edit" on a donation card in admin panel, the modal opens.
+But it does not auto-fill the current data (title, amount, image, payment info).
+I have to re-enter all data manually again to update.
+Expected behavior: When I open edit modal → it should fetch and show existing data for that donation card.
+✅ What I Need to Fix:
+On Create Donation Card, it should:
+Save all fields correctly (including payment info).
+Immediately show in frontend under the selected category.
+Each donation card should:
+Have its own payment details shown in frontend (not common/global).
+Load these payment details correctly when fetched.
+Admin Panel "Edit" modal should:
+Automatically fetch existing data for the clicked card.
+Show it in the form fields for editing without re-entering everything.

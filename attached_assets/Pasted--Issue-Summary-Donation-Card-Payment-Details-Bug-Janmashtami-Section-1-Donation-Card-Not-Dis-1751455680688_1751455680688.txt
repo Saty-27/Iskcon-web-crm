@@ -1,0 +1,36 @@
+🧾 Issue Summary: Donation Card & Payment Details Bug – Janmashtami Section
+1. Donation Card Not Displaying for Janmashtami
+
+You’ve created specific donation cards under the Janmashtami category, but they’re not appearing on the frontend.
+Possible causes:
+Cards may not be correctly linked to the Janmashtami category ID in the database.
+The frontend fetch query might not be filtering cards by category properly.
+2. Same Payment Details Showing for All Cards
+
+You uploaded different payment details (image, bank info, UPI, QR code) for each donation card.
+However, on the client-side, all donation cards are showing the same payment details, regardless of the card selected.
+Likely issue:
+The frontend might be using static or shared state/payment object for all cards.
+Backend API might not be returning card-specific payment detail fields correctly.
+3. Admin Panel: Details Not Fetching on Card Click
+
+When you click on a donation card in the Admin Panel, it should show the current data (title, image, amount, description, and specific payment details).
+Instead, either no data is fetched, or outdated/default data is shown.
+Likely reasons:
+Card ID not passed correctly in the click function.
+Edit modal may not be linked to dynamic data fetching.
+Backend endpoint might not be returning card-specific data, or frontend state is not updating on modal open.
+✅ What Needs to Be Fixed
+Ensure Cards Are Fetched by Janmashtami Category ID
+Check MongoDB or backend logic: Make sure each card is linked to the correct category.
+Verify that your frontend API call filters by the correct category _id.
+Fix Dynamic Payment Detail Rendering
+Ensure payment details are stored per card in the database (not globally).
+Update the frontend logic to display the payment details of the specific card being viewed or clicked.
+Confirm backend API is returning the correct paymentDetails object per card.
+Fix Admin Panel Modal Data Binding
+Ensure the “Edit/View” modal pulls the correct card data using the card’s unique ID.
+On click of a card:
+Trigger an API call to get the current details of that card.
+Bind those details into the modal fields.
+Confirm that form values are dynamic and reset on every card click.

@@ -1,0 +1,84 @@
+🔧 Admin Panel: Event Management System (Full Control Design)
+
+✅ 1. Create/Edit Event (Main Container)
+This is the top-most section of the donation page. Admin should be able to:
+
+Fields for Admin:
+
+Event Title (e.g., Support Our Temple Development)
+Event Description (Rich text or Markdown-supported)
+Event Banner Image (Upload or Image URL)
+“Read More” Link URL (Optional: can be internal route or external)
+Event Status: Active / Inactive
+Admin Features:
+
+Upload new banner
+Update title/description anytime
+Enable/disable the event
+Delete the event
+Frontend Output:
+
+Display the banner image
+Display event title & description
+“Read More” button linking to full event details
+✅ 2. Add Predefined Donation Cards (Dynamic & Multiple)
+Each card allows users to donate a fixed amount to a specific renovation cause. Admin should be able to:
+
+Fields per Card:
+
+Donation Title (e.g., General Temple Maintenance)
+Card Image (optional but recommended)
+Amount (e.g., ₹1,001)
+Sort Order (to control the display order)
+Admin Features:
+
+Add unlimited donation cards
+Edit/update any card (title/image/amount)
+Delete any card
+Reorder cards visually or via sort field
+Frontend Output:
+
+Section Title: Temple Renovation Donation Options
+Each card shows title, amount, and image
+“Add Donation” button on each card
+All cards are responsive and neatly arranged
+✅ 3. Add Custom Donation Section
+This allows donors to input any custom donation amount.
+
+Fields:
+
+Section Title (default: Any Donation of Your Choice for Temple Renovation)
+Enable/Disable toggle (in case admin wants only fixed options)
+Frontend Output:
+
+Input field for donation amount
+Donate button
+Same modal/flow as predefined card, with this amount
+✅ 4. Bank & UPI Payment Details
+This supports donors who want to do manual transfers.
+
+Fields for Admin:
+
+Bank Name
+Account Holder Name
+Account Number
+IFSC Code
+SWIFT Code (optional, for international donors)
+UPI QR Code Image (upload image)
+Admin Features:
+
+Save/update bank details anytime
+Upload QR code image
+Optionally disable this section if not needed
+Frontend Output:
+
+Left Side: Full bank details (textual)
+Right Side: QR code for scanning
+Section title: Other Payment Methods / Manual Donation
+✅ 5. Admin Actions Overview
+For each event, admin should be able to:
+
+View all donation cards added under that event
+Add new cards from within the event page
+Manage account/bank details tied to that event
+Preview frontend display for testing

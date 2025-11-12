@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Temple Images</title>
+</head>
+<body>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Temple 1 - Main Hall
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        // Main structure
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(300, 200, 200, 200);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(300, 200, 200, 200);
+        
+        // Dome
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath();
+        ctx.ellipse(400, 185, 50, 35, 0, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+        
+        // Pillars
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(250, 200, 30, 300);
+        ctx.strokeRect(250, 200, 30, 300);
+        ctx.fillRect(520, 200, 30, 300);
+        ctx.strokeRect(520, 200, 30, 300);
+        
+        // Save as data URL
+        const dataURL = canvas.toDataURL('image/png');
+        console.log('Temple image created');
+    </script>
+</body>
+</html>

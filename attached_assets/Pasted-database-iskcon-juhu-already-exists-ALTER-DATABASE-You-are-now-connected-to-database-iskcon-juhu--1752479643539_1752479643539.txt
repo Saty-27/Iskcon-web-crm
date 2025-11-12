@@ -1,0 +1,109 @@
+database "iskcon_juhu" already exists
+ALTER DATABASE
+You are now connected to database "iskcon_juhu" as user "postgres".
+psql:iskcon_juhu_database.sql:26: ERROR:  role "iskcon_user" already exists
+GRANT
+GRANT
+psql:iskcon_juhu_database.sql:33: NOTICE:  extension "plpgsql" already exists, skipping
+CREATE EXTENSION
+SET
+SET
+psql:iskcon_juhu_database.sql:51: ERROR:  relation "banners" already exists
+ALTER TABLE
+psql:iskcon_juhu_database.sql:63: ERROR:  relation "banners_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+psql:iskcon_juhu_database.sql:80: ERROR:  relation "contact_messages" already exists
+ALTER TABLE
+psql:iskcon_juhu_database.sql:92: ERROR:  relation "contact_messages_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+psql:iskcon_juhu_database.sql:108: ERROR:  relation "donation_categories" already exists
+ALTER TABLE
+psql:iskcon_juhu_database.sql:120: ERROR:  relation "donation_categories_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+psql:iskcon_juhu_database.sql:144: ERROR:  relation "donations" already exists
+ALTER TABLE
+psql:iskcon_juhu_database.sql:156: ERROR:  relation "donations_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+psql:iskcon_juhu_database.sql:174: ERROR:  relation "events" already exists
+ALTER TABLE
+psql:iskcon_juhu_database.sql:186: ERROR:  relation "events_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+psql:iskcon_juhu_database.sql:203: ERROR:  relation "gallery" already exists
+ALTER TABLE
+psql:iskcon_juhu_database.sql:215: ERROR:  relation "gallery_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+psql:iskcon_juhu_database.sql:231: ERROR:  relation "quotes" already exists
+ALTER TABLE
+psql:iskcon_juhu_database.sql:243: ERROR:  relation "quotes_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+psql:iskcon_juhu_database.sql:259: ERROR:  relation "social_links" already exists
+ALTER TABLE
+psql:iskcon_juhu_database.sql:271: ERROR:  relation "social_links_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+psql:iskcon_juhu_database.sql:284: ERROR:  relation "subscriptions" already exists
+ALTER TABLE
+psql:iskcon_juhu_database.sql:296: ERROR:  relation "subscriptions_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+psql:iskcon_juhu_database.sql:314: ERROR:  relation "testimonials" already exists
+ALTER TABLE
+psql:iskcon_juhu_database.sql:326: ERROR:  relation "testimonials_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+psql:iskcon_juhu_database.sql:343: ERROR:  relation "users" already exists
+ALTER TABLE
+psql:iskcon_juhu_database.sql:355: ERROR:  relation "users_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+psql:iskcon_juhu_database.sql:374: ERROR:  relation "videos" already exists
+ALTER TABLE
+psql:iskcon_juhu_database.sql:386: ERROR:  relation "videos_id_seq" already exists
+ALTER TABLE
+ALTER SEQUENCE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+psql:iskcon_juhu_database.sql:412: ERROR:  duplicate key value violates unique constraint "users_email_key"
+DETAIL:  Key (email)=(admin@iskconjuhu.org) already exists.
+INSERT 0 6
+INSERT 0 3
+INSERT 0 3
+INSERT 0 3
+INSERT 0 4
+INSERT 0 3
+psql:iskcon_juhu_database.sql:457: ERROR:  multiple primary keys for table "banners" are not allowed
+psql:iskcon_juhu_database.sql:458: ERROR:  multiple primary keys for table "contact_messages" are not allowed
+psql:iskcon_juhu_database.sql:459: ERROR:  multiple primary keys for table "donation_categories" are not allowed
+psql:iskcon_juhu_database.sql:460: ERROR:  multiple primary keys for table "donations" are not allowed
+psql:iskcon_juhu_database.sql:461: ERROR:  multiple primary keys for table "events" are not allowed
+psql:iskcon_juhu_database.sql:462: ERROR:  multiple primary keys for table "gallery" are not allowed
+psql:iskcon_juhu_database.sql:463: ERROR:  multiple primary keys for table "quotes" are not allowed
+psql:iskcon_juhu_database.sql:464: ERROR:  multiple primary keys for table "social_links" are not allowed
+psql:iskcon_juhu_database.sql:465: ERROR:  relation "subscriptions_email_key" already exists
+psql:iskcon_juhu_database.sql:466: ERROR:  multiple primary keys for table "subscriptions" are not allowed
+psql:iskcon_juhu_database.sql:467: ERROR:  multiple primary keys for table "testimonials" are not allowed
+psql:iskcon_juhu_database.sql:468: ERROR:  relation "users_email_key" already exists
+psql:iskcon_juhu_database.sql:469: ERROR:  multiple primary keys for table "users" are not allowed
+psql:iskcon_juhu_database.sql:470: ERROR:  relation "users_username_key" already exists
+psql:iskcon_juhu_database.sql:471: ERROR:  multiple primary keys for table "videos" are not allowed
+psql:iskcon_juhu_database.sql:476: ERROR:  constraint "donations_category_id_donation_categories_id_fk" for relation "donations" already exists
+GRANT
+GRANT
+GRANT

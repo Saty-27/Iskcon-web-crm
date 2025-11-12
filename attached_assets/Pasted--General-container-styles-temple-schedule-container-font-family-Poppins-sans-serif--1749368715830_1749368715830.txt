@@ -1,0 +1,192 @@
+/* General container styles */
+.temple-schedule-container {
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Header styles */
+.temple-schedule-header {
+  background-color: #f39c12;
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.temple-schedule-header h1 {
+  color: white;
+  font-weight: bold;
+  font-size: 24px;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Closed times description */
+.temple-closed-times {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+/* Schedule layout */
+.temple-schedule-columns {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .temple-schedule-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Individual schedule item */
+.temple-schedule-item {
+  display: flex;
+  margin: 10px 0;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  justify-content: center;
+  align-items: center;
+}
+
+.temple-schedule-time {
+  font-size: 18px;
+  color: #333;
+  width: 80px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.temple-schedule-details {
+  text-align: center;
+  flex-grow: 1;
+}
+
+.temple-schedule-title {
+  font-size: 16px;
+  color: #000;
+  font-weight: bold;
+}
+
+.temple-schedule-description {
+  font-size: 14px;
+  color: #666;
+}
+
+/* === Modal Styling === */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease-in-out;
+  position: relative; /* ✅ ADD THIS */
+}
+
+.modal-content h2 {
+  font-size: 22px;
+  font-weight: bold;
+  color: #f39c12;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.close-button:hover {
+  background-color: #d27800;
+}
+/* Modal fade animation */
+
+
+.temple-action-buttons {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.temple-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.temple-button:hover {
+  background-color: #d27800;
+}
+
+.temple-button .icon {
+  stroke-width: 1.3;
+  height: 16px;
+  width: 16px;
+  margin-bottom: 1px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.temple-button .label {
+  display: inline;
+}
+
+/* On mobile: hide labels and center buttons */
+@media (max-width: 600px) {
+  .temple-button .label {
+    display: none;
+  }
+
+  .temple-button {
+    padding: 10px;
+    justify-content: center;
+  }
+}

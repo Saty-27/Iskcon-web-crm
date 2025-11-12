@@ -1,0 +1,103 @@
+cat > vps-deploy.sh << 'EOF'
+#!/bin/bash
+echo "🚀 Starting ISKCON Juhu VPS Deployment..."
+
+# Test database connection
+echo "🔍 Testing PostgreSQL connection..."
+psql -h localhost -U iskcon_user -d iskcon_juhu_db -c "SELECT 1;"
+
+# Install dependencies
+echo "📦 Installing dependencies..."
+npm install
+
+# Create database schema
+echo "🏗️  Creating database schema..."
+npm run db:push
+
+# Create import file with proper content
+echo "📝 Creating data import file..."
+cat > final-import.sql << 'SQLEOF'
+-- Clear existing test data
+DELETE FROM banners WHERE title = '' OR title IS NULL;
+DELETE FROM donation_categories WHERE name = 'jhHJ';
+DELETE FROM quotes WHERE text = 'hjfjdhjdhf';
+
+-- Insert admin user
+INSERT INTO users (username, password, email, name, role, is_active) VALUES
+('isk_conjuhuadmin', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@iskconjuhu.com', 'Admin User', 'admin', true)
+ON CONFLICT (username) DO NOTHING;
+
+-- Insert proper banners
+INSERT INTO banners (title, description, image_url, image_alt, button_text, button_link, is_active, "order") VALUES
+('Welcome to ISKCON Juhu', 'Experience divine spirituality at our sacred temple', '/uploads/banners/welcome.jpg', 'ISKCON Juhu Temple', 'Visit Temple', '/', true, 1),
+('Janmashtami Festival', 'Join us for the grand celebration of Krishna Janmashtami', '/uploads/banners/janmashtami.jpg', 'Janmashtami Festival', 'Learn More', '/events/1', true, 2),
+('Daily Arti Darshan', 'Experience divine darshan and participate in daily arti', '/uploads/banners/arti.jpg', 'Daily Arti', 'View Schedule', '/schedule', true, 3);
+
+-- Insert donation categories
+INSERT INTO donation_categories (name, description, image_url, is_active, "order") VALUES
+('Temple Renovation', 'Support the maintenance and development of our sacred temple infrastructure', '/uploads/categories/renovation.jpg', true, 1),
+('Food Distribution', 'Help us feed the needy through our daily prasadam distribution program', '/uploads/categories/food.jpg', true, 2),
+('Educational Programs', 'Support spiritual education and Krishna consciousness programs', '/uploads/categories/education.jpg', true, 3),
+('Festival Celebrations', 'Sponsor religious festivals and special events throughout the year', '/uploads/categories/festivals.jpg', true, 4);
+
+-- Insert spiritual quotes
+INSERT INTO quotes (text, source, is_active, "order") VALUES
+('Man is made by his belief. As he believes, so he is.', 'Bhagavad Gita', true, 1),
+('The soul is neither born, nor does it die. It is not slain when the body is slain.', 'Bhagavad Gita 2.20', true, 2),
+('Whatever happened, happened for the good. Whatever is happening, is happening for the good.', 'Bhagavad Gita', true, 3),
+('You have the right to work, but never to the fruit of work.', 'Bhagavad Gita 2.47', true, 4);
+
+-- Insert temple statistics
+INSERT INTO stats (value, suffix, label, is_active, order_index) VALUES
+(50000, '+', 'Devotees Served', true, 1),
+(300, 'cr+', 'Meals Served', true, 2),
+(25, '+', 'Years of Service', true, 3),
+(100, '+', 'Daily Programs', true, 4);
+
+-- Insert daily schedule
+INSERT INTO schedules (time, title, description, is_active, order_index) VALUES
+('04:30 AM', 'Mangala Arti', 'Morning prayer and worship to begin the day', true, 1),
+('07:30 AM', 'Tulsi Arti', 'Sacred prayer to Tulsi Maharani', true, 2),
+('08:00 AM', 'Darshan Arti', 'Daily deity darshan for all devotees', true, 3),
+('12:30 PM', 'Raj Bhog Arti', 'Midday offering to Their Lordships', true, 4),
+('07:00 PM', 'Sandhya Arti', 'Evening prayer and worship', true, 5),
+('08:30 PM', 'Shayana Arti', 'Night rest ceremony for the deities', true, 6);
+
+-- Insert social media links
+INSERT INTO social_links (platform, url, icon, is_active) VALUES
+('Facebook', 'https://facebook.com/iskconjuhu', 'facebook', true),
+('Instagram', 'https://instagram.com/iskconjuhu', 'instagram', true),
+('YouTube', 'https://youtube.com/iskconjuhu', 'youtube', true),
+('Twitter', 'https://twitter.com/iskconjuhu', 'twitter', true);
+
+-- Insert testimonials
+INSERT INTO testimonials (name, location, message, image_url, is_active) VALUES
+('Rajesh Sharma', 'Mumbai', 'ISKCON Juhu has completely transformed my spiritual journey. The daily programs and devotional atmosphere have brought immense peace to my life.', '/uploads/testimonials/person1.jpg', true),
+('Priya Patel', 'Delhi', 'The prasadam distribution program helped my family during our most difficult times. The temple community support is incredible.', '/uploads/testimonials/person2.jpg', true),
+('Amit Kumar', 'Bangalore', 'Regular participation in temple activities has given me clarity and purpose. The spiritual guidance here is unparalleled.', '/uploads/testimonials/person3.jpg', true);
+SQLEOF
+
+# Import data
+echo "📊 Importing data..."
+psql -h localhost -U iskcon_user -d iskcon_juhu_db -f final-import.sql
+
+# Build application
+echo "🏗️  Building application..."
+npm run build
+
+# Start with PM2
+echo "🚀 Starting application with PM2..."
+pm2 delete iskcon-juhu 2>/dev/null || true
+pm2 start ecosystem.config.js
+
+# Show status
+echo "📊 Application status:"
+pm2 status
+
+echo "🎉 ISKCON Juhu deployment completed successfully!"
+echo "🌐 Your application is now running on port 3000"
+echo "📱 Access admin panel at: http://your-domain/admin"
+EOF
+
+chmod +x vps-deploy.sh
+./vps-deploy.sh

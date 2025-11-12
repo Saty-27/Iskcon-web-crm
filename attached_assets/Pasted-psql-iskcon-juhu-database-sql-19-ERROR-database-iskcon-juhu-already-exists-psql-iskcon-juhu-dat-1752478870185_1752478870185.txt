@@ -1,0 +1,137 @@
+psql:iskcon_juhu_database.sql:19: ERROR:  database "iskcon_juhu" already exists
+psql:iskcon_juhu_database.sql:20: ERROR:  must be owner of database iskcon_juhu
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, compression: off)
+You are now connected to database "iskcon_juhu" as user "iskcon_user".
+psql:iskcon_juhu_database.sql:26: ERROR:  permission denied to create role
+DETAIL:  Only roles with the CREATEROLE attribute may create roles.
+psql:iskcon_juhu_database.sql:27: WARNING:  no privileges were granted for "iskcon_juhu"
+GRANT
+psql:iskcon_juhu_database.sql:28: WARNING:  no privileges were granted for "public"
+GRANT
+psql:iskcon_juhu_database.sql:33: NOTICE:  extension "plpgsql" already exists, skipping
+CREATE EXTENSION
+SET
+SET
+psql:iskcon_juhu_database.sql:51: ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.banners (
+                     ^
+psql:iskcon_juhu_database.sql:52: ERROR:  must be owner of table banners
+psql:iskcon_juhu_database.sql:63: ERROR:  permission denied for schema public
+psql:iskcon_juhu_database.sql:64: ERROR:  must be owner of sequence banners_id_seq
+psql:iskcon_juhu_database.sql:65: ERROR:  must be owner of sequence banners_id_seq
+psql:iskcon_juhu_database.sql:80: ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.contact_messages (
+                     ^
+psql:iskcon_juhu_database.sql:81: ERROR:  must be owner of table contact_messages
+psql:iskcon_juhu_database.sql:92: ERROR:  permission denied for schema public
+psql:iskcon_juhu_database.sql:93: ERROR:  must be owner of sequence contact_messages_id_seq
+psql:iskcon_juhu_database.sql:94: ERROR:  must be owner of sequence contact_messages_id_seq
+psql:iskcon_juhu_database.sql:108: ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.donation_categories (
+                     ^
+psql:iskcon_juhu_database.sql:109: ERROR:  must be owner of table donation_categories
+psql:iskcon_juhu_database.sql:120: ERROR:  permission denied for schema public
+psql:iskcon_juhu_database.sql:121: ERROR:  must be owner of sequence donation_categories_id_seq
+psql:iskcon_juhu_database.sql:122: ERROR:  must be owner of sequence donation_categories_id_seq
+psql:iskcon_juhu_database.sql:144: ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.donations (
+                     ^
+psql:iskcon_juhu_database.sql:145: ERROR:  must be owner of table donations
+psql:iskcon_juhu_database.sql:156: ERROR:  permission denied for schema public
+psql:iskcon_juhu_database.sql:157: ERROR:  must be owner of sequence donations_id_seq
+psql:iskcon_juhu_database.sql:158: ERROR:  must be owner of sequence donations_id_seq
+psql:iskcon_juhu_database.sql:174: ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.events (
+                     ^
+psql:iskcon_juhu_database.sql:175: ERROR:  must be owner of table events
+psql:iskcon_juhu_database.sql:186: ERROR:  permission denied for schema public
+psql:iskcon_juhu_database.sql:187: ERROR:  must be owner of sequence events_id_seq
+psql:iskcon_juhu_database.sql:188: ERROR:  must be owner of sequence events_id_seq
+psql:iskcon_juhu_database.sql:203: ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.gallery (
+                     ^
+psql:iskcon_juhu_database.sql:204: ERROR:  must be owner of table gallery
+psql:iskcon_juhu_database.sql:215: ERROR:  permission denied for schema public
+psql:iskcon_juhu_database.sql:216: ERROR:  must be owner of sequence gallery_id_seq
+psql:iskcon_juhu_database.sql:217: ERROR:  must be owner of sequence gallery_id_seq
+psql:iskcon_juhu_database.sql:231: ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.quotes (
+                     ^
+psql:iskcon_juhu_database.sql:232: ERROR:  must be owner of table quotes
+psql:iskcon_juhu_database.sql:243: ERROR:  permission denied for schema public
+psql:iskcon_juhu_database.sql:244: ERROR:  must be owner of sequence quotes_id_seq
+psql:iskcon_juhu_database.sql:245: ERROR:  must be owner of sequence quotes_id_seq
+psql:iskcon_juhu_database.sql:259: ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.social_links (
+                     ^
+psql:iskcon_juhu_database.sql:260: ERROR:  must be owner of table social_links
+psql:iskcon_juhu_database.sql:271: ERROR:  permission denied for schema public
+psql:iskcon_juhu_database.sql:272: ERROR:  must be owner of sequence social_links_id_seq
+psql:iskcon_juhu_database.sql:273: ERROR:  must be owner of sequence social_links_id_seq
+psql:iskcon_juhu_database.sql:284: ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.subscriptions (
+                     ^
+psql:iskcon_juhu_database.sql:285: ERROR:  must be owner of table subscriptions
+psql:iskcon_juhu_database.sql:296: ERROR:  permission denied for schema public
+psql:iskcon_juhu_database.sql:297: ERROR:  must be owner of sequence subscriptions_id_seq
+psql:iskcon_juhu_database.sql:298: ERROR:  must be owner of sequence subscriptions_id_seq
+psql:iskcon_juhu_database.sql:314: ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.testimonials (
+                     ^
+psql:iskcon_juhu_database.sql:315: ERROR:  must be owner of table testimonials
+psql:iskcon_juhu_database.sql:326: ERROR:  permission denied for schema public
+psql:iskcon_juhu_database.sql:327: ERROR:  must be owner of sequence testimonials_id_seq
+psql:iskcon_juhu_database.sql:328: ERROR:  must be owner of sequence testimonials_id_seq
+psql:iskcon_juhu_database.sql:343: ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.users (
+                     ^
+psql:iskcon_juhu_database.sql:344: ERROR:  must be owner of table users
+psql:iskcon_juhu_database.sql:355: ERROR:  permission denied for schema public
+psql:iskcon_juhu_database.sql:356: ERROR:  must be owner of sequence users_id_seq
+psql:iskcon_juhu_database.sql:357: ERROR:  must be owner of sequence users_id_seq
+psql:iskcon_juhu_database.sql:374: ERROR:  permission denied for schema public
+LINE 1: CREATE TABLE public.videos (
+                     ^
+psql:iskcon_juhu_database.sql:375: ERROR:  must be owner of table videos
+psql:iskcon_juhu_database.sql:386: ERROR:  permission denied for schema public
+psql:iskcon_juhu_database.sql:387: ERROR:  must be owner of sequence videos_id_seq
+psql:iskcon_juhu_database.sql:388: ERROR:  must be owner of sequence videos_id_seq
+psql:iskcon_juhu_database.sql:393: ERROR:  must be owner of table banners
+psql:iskcon_juhu_database.sql:394: ERROR:  must be owner of table contact_messages
+psql:iskcon_juhu_database.sql:395: ERROR:  must be owner of table donation_categories
+psql:iskcon_juhu_database.sql:396: ERROR:  must be owner of table donations
+psql:iskcon_juhu_database.sql:397: ERROR:  must be owner of table events
+psql:iskcon_juhu_database.sql:398: ERROR:  must be owner of table gallery
+psql:iskcon_juhu_database.sql:399: ERROR:  must be owner of table quotes
+psql:iskcon_juhu_database.sql:400: ERROR:  must be owner of table social_links
+psql:iskcon_juhu_database.sql:401: ERROR:  must be owner of table subscriptions
+psql:iskcon_juhu_database.sql:402: ERROR:  must be owner of table testimonials
+psql:iskcon_juhu_database.sql:403: ERROR:  must be owner of table users
+psql:iskcon_juhu_database.sql:404: ERROR:  must be owner of table videos
+psql:iskcon_juhu_database.sql:412: ERROR:  permission denied for table users
+psql:iskcon_juhu_database.sql:421: ERROR:  permission denied for table donation_categories
+psql:iskcon_juhu_database.sql:427: ERROR:  permission denied for table banners
+psql:iskcon_juhu_database.sql:433: ERROR:  permission denied for table quotes
+psql:iskcon_juhu_database.sql:439: ERROR:  permission denied for table events
+psql:iskcon_juhu_database.sql:446: ERROR:  permission denied for table gallery
+psql:iskcon_juhu_database.sql:452: ERROR:  permission denied for table videos
+psql:iskcon_juhu_database.sql:457: ERROR:  must be owner of table banners
+psql:iskcon_juhu_database.sql:458: ERROR:  must be owner of table contact_messages
+psql:iskcon_juhu_database.sql:459: ERROR:  must be owner of table donation_categories
+psql:iskcon_juhu_database.sql:460: ERROR:  must be owner of table donations
+psql:iskcon_juhu_database.sql:461: ERROR:  must be owner of table events
+psql:iskcon_juhu_database.sql:462: ERROR:  must be owner of table gallery
+psql:iskcon_juhu_database.sql:463: ERROR:  must be owner of table quotes
+psql:iskcon_juhu_database.sql:464: ERROR:  must be owner of table social_links
+psql:iskcon_juhu_database.sql:465: ERROR:  must be owner of table subscriptions
+psql:iskcon_juhu_database.sql:466: ERROR:  must be owner of table subscriptions
+psql:iskcon_juhu_database.sql:467: ERROR:  must be owner of table testimonials
+psql:iskcon_juhu_database.sql:468: ERROR:  must be owner of table users
+psql:iskcon_juhu_database.sql:469: ERROR:  must be owner of table users
+psql:iskcon_juhu_database.sql:470: ERROR:  must be owner of table users
+psql:iskcon_juhu_database.sql:471: ERROR:  must be owner of table videos
+psql:iskcon_juhu_database.sql:476: ERROR:  must be owner of table donations
+psql:iskcon_juhu_database.sql:481: ERROR:  permission denied for table banners
+psql:iskcon_juhu_database.sql:482: ERROR:  permission denied for sequence banners_id_seq
+GRANT
+root@srv905341:/var/www/iskcon-juhu# 
