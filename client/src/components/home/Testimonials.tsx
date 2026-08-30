@@ -7,7 +7,7 @@ const Testimonials = () => {
     queryKey: ['/api/testimonials'],
     staleTime: 5 * 60 * 1000,
   });
-  
+
   if (isLoading) {
     return (
       <section className="py-16 bg-white">
@@ -16,7 +16,7 @@ const Testimonials = () => {
             <Skeleton className="h-10 w-2/3 mx-auto mb-4" />
             <Skeleton className="h-6 w-full max-w-2xl mx-auto" />
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
               <div key={i} className="bg-neutral p-6 rounded-xl shadow-md">
@@ -37,11 +37,11 @@ const Testimonials = () => {
       </section>
     );
   }
-  
+
   if (testimonials.length === 0) {
     return null;
   }
-  
+
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
@@ -59,9 +59,9 @@ const Testimonials = () => {
             <div key={testimonial.id} className="bg-neutral p-6 rounded-xl shadow-md">
               <div className="flex items-center mb-4">
                 <div className="w-14 h-14 rounded-full overflow-hidden mr-4">
-                  <img 
-                    src={testimonial.imageUrl || "https://via.placeholder.com/100?text=N/A"} 
-                    alt={testimonial.name} 
+                  <img
+                    src={testimonial.imageUrl || "https://via.placeholder.com/100?text=N/A"}
+                    alt={testimonial.name}
                     className="w-full h-full object-cover"
                     loading="lazy"
                     decoding="async"

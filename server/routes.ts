@@ -153,10 +153,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const galleryDir = path.join(uploadsDir, 'gallery');
   const videosDir = path.join(uploadsDir, 'videos');
   const blogDir = path.join(uploadsDir, 'blog');
+  const eventsDir = path.join(uploadsDir, 'events');
+  const chatDir = path.join(uploadsDir, 'chat');
   const socialIconsDir = path.join(uploadsDir, 'social-icons');
   
   // Create directories if they don't exist
-  [uploadsDir, bannersDir, cardsDir, qrCodesDir, galleryDir, videosDir, blogDir, socialIconsDir].forEach(dir => {
+  [uploadsDir, bannersDir, cardsDir, qrCodesDir, galleryDir, videosDir, blogDir, eventsDir, chatDir, socialIconsDir].forEach(dir => {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
@@ -177,6 +179,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         destDir = videosDir;
       } else if (type === 'blog') {
         destDir = blogDir;
+      } else if (type === 'event' || type === 'events') {
+        destDir = eventsDir;
+      } else if (type === 'chat') {
+        destDir = chatDir;
       } else if (type === 'social-icon') {
         destDir = socialIconsDir;
       }
@@ -187,7 +193,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     filename: function (req, file, cb) {
       const type = req.body.type || 'banner';
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      const filename = type + '-' + uniqueSuffix + path.extname(file.originalname);
+      const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
+      const filename = `${type}-${uniqueSuffix}${ext}`;
       console.log('Generated filename for type', type, ':', filename);
       cb(null, filename);
     }
@@ -196,13 +203,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const upload = multer({ 
     storage: storage_multer,
     limits: {
-      fileSize: 1 * 1024 * 1024 // 1MB limit
+      fileSize: 25 * 1024 * 1024 // 25MB limit for high-res temple photography
     },
     fileFilter: function (req, file, cb) {
-      if (file.mimetype.startsWith('image/')) {
+      const allowedMimes = [
+        'image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif', 'image/svg+xml',
+        'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      if (allowedMimes.includes(file.mimetype) || file.mimetype.startsWith('image/')) {
         cb(null, true);
       } else {
-        cb(new Error('Only image files are allowed!'));
+        cb(new Error('Invalid file type. Only images and PDF documents are allowed.'));
       }
     }
   });
@@ -227,70 +238,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/uploads/gallery', express.static(galleryDir, staticUploadOptions));
   app.use('/uploads/videos', express.static(videosDir, staticUploadOptions));
   app.use('/uploads/blog', express.static(blogDir, staticUploadOptions));
+  app.use('/uploads/events', express.static(eventsDir, staticUploadOptions));
+  app.use('/uploads/chat', express.static(chatDir, staticUploadOptions));
   app.use('/uploads/social-icons', express.static(socialIconsDir, staticUploadOptions));
   app.use('/uploads', express.static(uploadsDir, staticUploadOptions));
 
-  // Generic upload endpoint - move file to correct directory after upload
-  app.post("/api/upload", upload.single('file'), (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
+  // Generic upload endpoint - handles single file uploads with clear error responses
+  app.post("/api/upload", (req, res) => {
+    upload.single('file')(req, res, (err: any) => {
+      if (err) {
+        console.error('Multer upload error:', err);
+        return res.status(400).json({ 
+          success: false, 
+          message: err.code === 'LIMIT_FILE_SIZE' ? 'File size exceeds 25MB limit' : (err.message || 'File upload error') 
+        });
       }
-      
-      const type = req.body.type || 'banner';
-      console.log('Processing upload for type:', type);
-      
-      // Determine target directory and folder name
-      let targetDir = bannersDir;
-      let folder = 'banners';
-      
-      if (type === 'card') {
-        targetDir = cardsDir;
-        folder = 'cards';
-      } else if (type === 'qr') {
-        targetDir = qrCodesDir;
-        folder = 'qr-codes';
-      } else if (type === 'gallery') {
-        targetDir = galleryDir;
-        folder = 'gallery';
-      } else if (type === 'video') {
-        targetDir = videosDir;
-        folder = 'videos';
-      } else if (type === 'blog') {
-        targetDir = blogDir;
-        folder = 'blog';
-      } else if (type === 'social-icon') {
-        targetDir = socialIconsDir;
-        folder = 'social-icons';
+
+      try {
+        if (!req.file) {
+          return res.status(400).json({ success: false, message: "No file uploaded" });
+        }
+        
+        const type = req.body.type || 'banner';
+        console.log('Processing upload for type:', type, 'file:', req.file.filename);
+        
+        // Determine target directory and folder name
+        let targetDir = bannersDir;
+        let folder = 'banners';
+        
+        if (type === 'card') {
+          targetDir = cardsDir;
+          folder = 'cards';
+        } else if (type === 'qr') {
+          targetDir = qrCodesDir;
+          folder = 'qr-codes';
+        } else if (type === 'gallery') {
+          targetDir = galleryDir;
+          folder = 'gallery';
+        } else if (type === 'video') {
+          targetDir = videosDir;
+          folder = 'videos';
+        } else if (type === 'blog') {
+          targetDir = blogDir;
+          folder = 'blog';
+        } else if (type === 'event' || type === 'events') {
+          targetDir = eventsDir;
+          folder = 'events';
+        } else if (type === 'chat') {
+          targetDir = chatDir;
+          folder = 'chat';
+        } else if (type === 'social-icon') {
+          targetDir = socialIconsDir;
+          folder = 'social-icons';
+        }
+        
+        const currentPath = req.file.path;
+        const correctFilename = req.file.filename;
+        const correctPath = path.join(targetDir, correctFilename);
+        
+        // Ensure file is in target directory
+        if (currentPath !== correctPath && fs.existsSync(currentPath)) {
+          fs.renameSync(currentPath, correctPath);
+        }
+        
+        const imageUrl = `/uploads/${folder}/${correctFilename}`;
+        console.log('File uploaded successfully:', imageUrl, 'Size:', req.file.size, 'bytes');
+        res.json({ success: true, url: imageUrl });
+        
+      } catch (error) {
+        console.error('Error processing upload:', error);
+        res.status(500).json({ success: false, message: "Error saving uploaded file", error: error instanceof Error ? error.message : String(error) });
       }
-      
-      // If file is not in the correct directory, move it
-      const currentPath = req.file.path;
-      const correctFilename = type + '-' + Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(req.file.originalname);
-      const correctPath = path.join(targetDir, correctFilename);
-      
-      console.log('Moving file from:', currentPath, 'to:', correctPath);
-      
-      // Move file to correct directory
-      if (currentPath !== correctPath) {
-        fs.renameSync(currentPath, correctPath);
-        console.log('File moved successfully to:', correctPath);
-      }
-      
-      // Verify file exists at new location
-      if (!fs.existsSync(correctPath)) {
-        console.error('File not found at target path:', correctPath);
-        return res.status(500).json({ message: "File upload failed - file not moved to correct directory" });
-      }
-      
-      const imageUrl = `/uploads/${folder}/${correctFilename}`;
-      console.log('File uploaded successfully:', imageUrl, 'Size:', fs.statSync(correctPath).size, 'bytes');
-      res.json({ url: imageUrl });
-      
-    } catch (error) {
-      console.log('Error processing upload:', error);
-      res.status(500).json({ message: "Error processing uploaded file", error: error instanceof Error ? error.message : String(error) });
-    }
+    });
   });
 
   // Banner upload endpoint (legacy)
