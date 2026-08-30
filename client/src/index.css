@@ -1,6 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
-@import url('https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -20,8 +17,11 @@
 
 @media (max-width: 768px) {
     .hero-heading {
-        font-size: 40px;
+        font-size: 28px;
+        line-height: 1.3;
         text-align: center;
+        padding: 8px 14px;
+        border-radius: 12px;
     }
 }
 
@@ -30,49 +30,98 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 70px;
-    padding: 20px;
+    gap: 24px;
+    padding: 20px 0;
     flex-wrap: wrap;
-    background-color: #fff;
+    background-color: transparent;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .stat-box {
     background-color: white;
-    border: 1px solid #FAA817CC;
-    border-radius: 10px;
-    padding: 20px;
-    min-width: 280px;
-    width: auto;
+    border: 1.5px solid #FAA817CC;
+    border-radius: 16px;
+    padding: 24px 20px;
+    min-width: 220px;
+    flex: 1 1 240px;
+    max-width: 340px;
     text-align: center;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease;
+    box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     position: relative;
     z-index: 1;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .stat-box:hover {
-    transform: scale(1.05);
+    transform: translateY(-3px);
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
 }
 
 .stat-value {
-    font-size: 50px;
-    font-weight: 700;
-    color: #FAA817CC;
-    margin: 0;
+    font-size: 42px;
+    line-height: 1.1;
+    font-weight: 800;
+    color: #FAA817;
+    margin: 0 0 6px 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .stat-label {
-    font-size: 16px;
-    color: #333;
-    margin-top: 10px;
+    font-size: 15px;
+    color: #4b5563;
+    margin: 0;
+    font-weight: 500;
+    line-height: 1.25;
 }
 
 @media (max-width: 768px) {
+    .stats-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 4px 0;
+        width: 100%;
+        max-width: 440px;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
     .stat-box {
-        width: 90%;
+        min-width: 100%;
+        max-width: 100%;
+        width: 100%;
+        padding: 20px 24px;
+        max-height: 110px;
+        border-radius: 16px;
+        border: 1.5px solid #FAA817CC;
+        margin: 0 !important;
+        box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.04);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+    .stat-value {
+        font-size: 38px;
+        line-height: 1.1;
+        font-weight: 800;
+        color: #FAA817;
+        margin: 0 0 6px 0;
+    }
+    .stat-label {
+        font-size: 14.5px;
+        font-weight: 500;
+        color: #4b5563;
+        margin: 0;
+        line-height: 1.25;
     }
 }
 
@@ -80,49 +129,71 @@
 .temple-schedule-container {
     font-family: 'Poppins', sans-serif;
     text-align: center;
-    padding: 20px;
+    padding: 24px 16px;
     background-color: white;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.06);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin: 20px 0;
+    margin: 20px auto;
+    max-width: 1200px;
+    width: 100%;
 }
 
 .temple-schedule-header {
     background-color: #f39c12;
     display: inline-block;
-    padding: 10px 20px;
-    border-radius: 5px;
-    margin-bottom: 10px;
+    padding: 8px 20px;
+    border-radius: 8px;
+    margin-bottom: 12px;
 }
 
 .temple-schedule-header h1 {
     color: white;
     font-weight: bold;
-    font-size: 24px;
+    font-size: 20px;
     margin: 0;
     cursor: pointer;
 }
 
 .temple-closed-times {
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 20px;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 18px;
+    padding: 0 12px;
 }
 
 .temple-schedule-columns {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
     justify-content: center;
+    width: 100%;
 }
 
 @media (max-width: 768px) {
     .temple-schedule-columns {
         grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .temple-action-buttons {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 480px;
+        gap: 10px;
+        padding: 0 16px;
+        margin: 0 auto 20px auto;
+        box-sizing: border-box;
+    }
+    .temple-button {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 10px;
+        justify-content: center;
+        box-sizing: border-box;
     }
 }
 
@@ -395,9 +466,16 @@ body.modal-open .stat-box {
 /* Temple Info Section - Unified Container */
 .temple-info-section {
   background: #FFFFFF;
-  padding: 60px 0;
+  padding: 36px 16px;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .temple-info-section {
+    padding: 60px 24px;
+  }
 }
 
 .temple-info-section > * {
@@ -405,26 +483,30 @@ body.modal-open .stat-box {
   z-index: 1;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Update individual component styles to integrate with unified container */
 .temple-info-section .temple-schedule-container {
   background: transparent !important;
-  padding: 0 0 40px 0 !important;
+  padding: 0 0 32px 0 !important;
   max-width: none !important;
   margin: 0 !important;
+  box-sizing: border-box;
 }
 
 .temple-info-section .stats-container {
   background: transparent !important;
-  padding: 40px 0 0 0 !important;
+  padding: 24px 0 0 0 !important;
   max-width: none !important;
   margin: 0 !important;
   display: flex;
   justify-content: center;
-  gap: 2rem;
+  gap: 1.5rem;
   flex-wrap: wrap;
+  box-sizing: border-box;
 }
 
 .temple-info-section .temple-schedule-container::before,
@@ -434,17 +516,17 @@ body.modal-open .stat-box {
 
 /* Improve stats card spacing and alignment */
 .temple-info-section .stat-box {
-  flex: 0 1 250px;
-  max-width: 250px;
+  flex: 1 1 240px;
+  max-width: 340px;
   margin: 0 !important;
+  box-sizing: border-box;
 }
 
-/* Center the stats section properly */
-.temple-info-section .stats-container {
-  padding-left: 20px;
-  padding-right: 20px;
-  position: relative;
-  z-index: 1;
+@media (max-width: 768px) {
+  .temple-info-section .stat-box {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
 }
 
 /* Donation Section Styling - From Reference */
@@ -980,3 +1062,92 @@ body.modal-open .stat-box {
     box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.7), 0 0 0 12px rgba(59, 130, 246, 0.1);
   }
 }
+
+/* Print styles for official donation receipts */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  header, footer, nav, button, .no-print, .print-hide {
+    display: none !important;
+  }
+  main {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+  }
+  .container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  #donation-receipt {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #fffdfa !important;
+  }
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+}
+
+/* =========================================================
+   High-Contrast Styling for Admin Panels & Tables
+   ========================================================= */
+
+/* Ensure white backgrounds ALWAYS render dark, readable text */
+.bg-white,
+[class*="bg-white"] {
+  color: #1e293b;
+}
+
+.bg-white th,
+.bg-white td,
+.bg-white p,
+.bg-white h1,
+.bg-white h2,
+.bg-white h3,
+.bg-white h4,
+.bg-white span:not([class*="text-"]):not([class*="bg-"]),
+.bg-white div:not([class*="text-"]):not([class*="bg-"]) {
+  color: #1e293b;
+}
+
+.bg-white .text-muted-foreground,
+.bg-white [class*="text-gray-500"],
+.bg-white [class*="text-slate-400"] {
+  color: #64748b !important;
+}
+
+.bg-white input:not([type="checkbox"]):not([type="radio"]),
+.bg-white textarea,
+.bg-white select {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+}
+
+/* Fix dark outline buttons so they never render white bg with pale text */
+.bg-slate-900 button[class*="border-slate"],
+.bg-slate-950 button[class*="border-slate"] {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+.bg-slate-900 button[class*="border-slate"]:hover,
+.bg-slate-950 button[class*="border-slate"]:hover {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+

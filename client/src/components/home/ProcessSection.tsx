@@ -1,5 +1,5 @@
-import processDesktopImg from "@assets/process-desktop_1749457628105.png";
-import processMobileImg from "@assets/process-mobile_1749457628106.png";
+import processDesktopImg from "@assets/gradientbg_1752332694284.png";
+const processMobileImg = processDesktopImg;
 
 const ProcessSection = () => {
   return (

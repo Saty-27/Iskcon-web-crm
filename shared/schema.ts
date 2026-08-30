@@ -11,13 +11,18 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   phone: text("phone"),
   address: text("address"),
-  role: text("role").default("user").notNull(),
+  role: text("role").default("user").notNull(), // 'super_admin' | 'admin' | 'user'
+  permissions: json("permissions").$type<string[] | null>(),
   isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   isActive: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 // Banners table
@@ -458,3 +463,77 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts, {
   createdAt: true,
   updatedAt: true,
 });
+
+// Conversations table for real-time private User-to-Admin chat
+export const conversations = pgTable("conversations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
+  status: text("status").default("active").notNull(), // 'active', 'archived', 'closed'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
+  lastMessageText: text("last_message_text"),
+});
+
+export type Conversation = typeof conversations.$inferSelect;
+export type InsertConversation = typeof conversations.$inferInsert;
+
+export const insertConversationSchema = createInsertSchema(conversations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastMessageAt: true,
+});
+
+// Messages table for chat history
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").references(() => conversations.id, { onDelete: 'cascade' }).notNull(),
+  senderId: integer("sender_id").references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  senderType: text("sender_type").notNull(), // 'user' | 'admin'
+  message: text("message"),
+  fileUrl: text("file_url"),
+  fileName: text("file_name"),
+  fileSize: integer("file_size"),
+  fileType: text("file_type"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  readAt: timestamp("read_at"),
+});
+
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = typeof messages.$inferInsert;
+
+export const insertMessageSchema = createInsertSchema(messages, {
+  message: z.string().max(5000).optional(),
+  fileUrl: z.string().optional(),
+  fileName: z.string().optional(),
+  fileSize: z.number().max(1024 * 1024, "File must be smaller than 1 MB").optional(),
+  fileType: z.string().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  readAt: true,
+});
+
+// Audit logs table for administrative action tracking
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: 'set null' }),
+  userName: text("user_name"),
+  userRole: text("user_role"),
+  action: text("action").notNull(), // 'create' | 'update' | 'delete' | 'login' | 'status_change' | 'reset_password' | 'permission_change'
+  section: text("section").notNull(), // 'donations' | 'gallery' | 'videos' | 'staff' | 'banners' | 'events' | 'chat' | 'users' | 'quotes' | 'blog' | 'settings'
+  targetId: text("target_id"),
+  details: json("details").$type<Record<string, any> | null>(),
+  ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+

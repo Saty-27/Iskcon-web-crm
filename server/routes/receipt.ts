@@ -1,11 +1,7 @@
-/**
- * Receipt Routes
- * 
- * Handles API routes for generating and serving donation receipts
- */
-
 import express from 'express';
-import { generateDonationPDF, sendWhatsAppReceipt, generateInvoiceNumber } from '../services/invoiceService';
+import { generateHtmlPdf } from '../services/puppeteerPdfGenerator';
+import { generateDonationPDF } from '../services/receiptPdfGenerator';
+import { sendWhatsAppReceipt, generateInvoiceNumber } from '../services/invoiceService';
 import { storage } from '../storage';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -75,7 +71,9 @@ router.post('/send-whatsapp', async (req, res) => {
       date: donation.createdAt,
       paymentMethod: donation.status.includes('upi') ? 'UPI' : 'Online Payment',
       purpose,
-      invoiceNumber
+      invoiceNumber,
+      address: donation.address || '',
+      panCard: donation.panCard || ''
     };
     
     // Send receipt via WhatsApp
@@ -113,9 +111,29 @@ router.post('/send-whatsapp', async (req, res) => {
 router.get('/download/:donationId', async (req, res) => {
   try {
     const { donationId } = req.params;
+    const txnidQuery = (req.query.txnid as string) || '';
     
-    // Get donation from the database
-    const donation = await storage.getDonation(Number(donationId));
+    // Get donation from the database by ID or paymentId/txnid
+    let donation = !isNaN(Number(donationId)) ? await storage.getDonation(Number(donationId)) : undefined;
+    
+    if (!donation && txnidQuery) {
+      donation = await storage.getDonationByPaymentId(txnidQuery);
+    }
+
+    if (!donation && isNaN(Number(donationId))) {
+      donation = await storage.getDonationByPaymentId(donationId);
+    }
+
+    if (!donation) {
+      const allDonations = await storage.getDonations();
+      donation = allDonations.find(d => 
+        String(d.id) === donationId || 
+        d.paymentId === donationId || 
+        d.paymentId === txnidQuery ||
+        d.invoiceNumber === donationId ||
+        (d.paymentGatewayResponse && (d.paymentGatewayResponse.includes(donationId) || (txnidQuery && d.paymentGatewayResponse.includes(txnidQuery))))
+      );
+    }
     
     if (!donation) {
       return res.status(404).json({
@@ -124,8 +142,8 @@ router.get('/download/:donationId', async (req, res) => {
       });
     }
     
-    // Get category name if available
-    let purpose = "ISKCON Juhu Donation";
+    // Get category/event purpose name
+    let purpose = donation.message || "General Donation / Seva";
     if (donation.categoryId) {
       const category = await storage.getDonationCategory(donation.categoryId);
       if (category) {
@@ -138,6 +156,10 @@ router.get('/download/:donationId', async (req, res) => {
       }
     }
     
+    // Import formatPaymentMode from generator
+    const { formatPaymentMode } = await import('../services/receiptPdfGenerator');
+    const paymentMethod = formatPaymentMode(null, null, donation.paymentGatewayResponse);
+    
     // Generate a unique invoice number if not already assigned
     const invoiceNumber = donation.invoiceNumber || generateInvoiceNumber();
     
@@ -149,13 +171,21 @@ router.get('/download/:donationId', async (req, res) => {
       email: donation.email,
       phone: donation.phone,
       date: donation.createdAt,
-      paymentMethod: donation.status.includes('upi') ? 'UPI' : 'Online Payment',
+      paymentMethod,
       purpose,
-      invoiceNumber
+      invoiceNumber,
+      address: donation.address || '',
+      panCard: donation.panCard || ''
     };
     
-    // Generate PDF
-    const pdfBuffer = await generateDonationPDF(receiptData);
+    // Generate PDF using exact HTML-to-PDF renderer with fallback
+    let pdfBuffer: Buffer;
+    try {
+      pdfBuffer = await generateHtmlPdf(receiptData);
+    } catch (e) {
+      console.warn('Puppeteer error, falling back to vector PDF:', e);
+      pdfBuffer = await generateDonationPDF(receiptData);
+    }
     
     // Set response headers
     res.setHeader('Content-Type', 'application/pdf');

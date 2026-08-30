@@ -1,9 +1,9 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc, lt, sql, isNull, inArray } from "drizzle-orm";
 import { db } from "./db";
 import { 
   users, banners, quotes, donationCategories, donationCards, eventDonationCards, bankDetails, eventBankDetails, categoryBankDetails, events, gallery, videos, liveVideos,
   testimonials, contactMessages, socialLinks, donations, subscriptions,
-  stats, schedules, blogPosts,
+  stats, schedules, blogPosts, conversations, messages, auditLogs,
   type User, type InsertUser, type Banner, type InsertBanner,
   type Quote, type InsertQuote, type DonationCategory, type InsertDonationCategory,
   type DonationCard, type InsertDonationCard, type EventDonationCard, type InsertEventDonationCard,
@@ -13,7 +13,8 @@ import {
   type ContactMessage, type InsertContactMessage, type SocialLink, type InsertSocialLink,
   type Donation, type InsertDonation, type Subscription, type InsertSubscription,
   type Stat, type InsertStat, type Schedule, type InsertSchedule,
-  type BlogPost, type InsertBlogPost
+  type BlogPost, type InsertBlogPost, type Conversation, type InsertConversation,
+  type Message, type InsertMessage, type AuditLog, type InsertAuditLog
 } from "@shared/schema";
 import type { IStorage } from "./storage";
 
@@ -43,6 +44,57 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(users);
   }
 
+  async getStaffUsers(): Promise<User[]> {
+    return await db.select().from(users).where(inArray(users.role, ['super_admin', 'admin'])).orderBy(users.id);
+  }
+
+  async createStaffUser(userData: any): Promise<User> {
+    const [newUser] = await db.insert(users).values({
+      username: userData.username,
+      password: userData.password,
+      email: userData.email,
+      name: userData.name,
+      phone: userData.phone || null,
+      address: userData.address || null,
+      role: userData.role || 'admin',
+      permissions: userData.permissions || [],
+      isActive: userData.isActive !== undefined ? userData.isActive : true,
+    }).returning();
+    return newUser;
+  }
+
+  async updateStaffUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    const [user] = await db.update(users)
+      .set({
+        ...userData,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async toggleUserStatus(id: number, isActive: boolean): Promise<User | undefined> {
+    const [user] = await db.update(users)
+      .set({
+        isActive,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async resetUserPassword(id: number, passwordHash: string): Promise<boolean> {
+    const result = await db.update(users)
+      .set({
+        password: passwordHash,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, id));
+    return result.rowCount > 0;
+  }
+
   async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
     const [user] = await db.update(users).set(userData).where(eq(users.id, id)).returning();
     return user;
@@ -51,6 +103,49 @@ export class DatabaseStorage implements IStorage {
   async deleteUser(id: number): Promise<boolean> {
     const result = await db.delete(users).where(eq(users.id, id));
     return result.rowCount > 0;
+  }
+
+  // Audit log operations
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const [newLog] = await db.insert(auditLogs).values(log).returning();
+    return newLog;
+  }
+
+  async getAuditLogs(limit: number = 50, offset: number = 0, section?: string, userId?: number): Promise<AuditLog[]> {
+    let query = db.select().from(auditLogs);
+    const conditions = [];
+
+    if (section) {
+      conditions.push(eq(auditLogs.section, section));
+    }
+    if (userId) {
+      conditions.push(eq(auditLogs.userId, userId));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)) as any;
+    }
+
+    return await query.orderBy(desc(auditLogs.createdAt)).limit(limit).offset(offset);
+  }
+
+  async getAuditLogsCount(section?: string, userId?: number): Promise<number> {
+    let query = db.select({ count: sql<number>`count(*)::int` }).from(auditLogs);
+    const conditions = [];
+
+    if (section) {
+      conditions.push(eq(auditLogs.section, section));
+    }
+    if (userId) {
+      conditions.push(eq(auditLogs.userId, userId));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)) as any;
+    }
+
+    const [result] = await query;
+    return result?.count || 0;
   }
 
   // Banner operations
@@ -529,7 +624,7 @@ export class DatabaseStorage implements IStorage {
       .from(donations)
       .leftJoin(donationCategories, eq(donations.categoryId, donationCategories.id))
       .leftJoin(events, eq(donations.eventId, events.id))
-      .orderBy(donations.createdAt);
+      .orderBy(desc(donations.id));
   }
 
   async getDonation(id: number): Promise<Donation | undefined> {
@@ -669,5 +764,154 @@ export class DatabaseStorage implements IStorage {
   async deleteBlogPost(id: number): Promise<boolean> {
     const result = await db.delete(blogPosts).where(eq(blogPosts.id, id));
     return result.rowCount > 0;
+  }
+
+  // Real-time Chat operations
+  async getOrCreateConversation(userId: number): Promise<Conversation> {
+    const [existing] = await db.select().from(conversations).where(eq(conversations.userId, userId));
+    if (existing) return existing;
+
+    const [created] = await db.insert(conversations).values({
+      userId,
+      status: "active",
+      lastMessageAt: new Date(),
+    }).returning();
+    return created;
+  }
+
+  async getConversations(limit = 40, offset = 0): Promise<any[]> {
+    const results = await db
+      .select({
+        id: conversations.id,
+        userId: conversations.userId,
+        status: conversations.status,
+        createdAt: conversations.createdAt,
+        updatedAt: conversations.updatedAt,
+        lastMessageAt: conversations.lastMessageAt,
+        lastMessageText: conversations.lastMessageText,
+        userName: users.name,
+        userEmail: users.email,
+        userPhone: users.phone,
+        userRole: users.role,
+        userUsername: users.username,
+      })
+      .from(conversations)
+      .innerJoin(users, eq(conversations.userId, users.id))
+      .orderBy(desc(conversations.lastMessageAt))
+      .limit(limit)
+      .offset(offset);
+
+    // Attach unread count for each conversation
+    const conversationsWithUnread = await Promise.all(
+      results.map(async (conv) => {
+        const [unreadResult] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(messages)
+          .where(
+            and(
+              eq(messages.conversationId, conv.id),
+              eq(messages.senderType, "user"),
+              isNull(messages.readAt)
+            )
+          );
+        return {
+          ...conv,
+          unreadCount: unreadResult?.count || 0,
+        };
+      })
+    );
+
+    return conversationsWithUnread;
+  }
+
+  async getConversationById(id: number): Promise<Conversation | undefined> {
+    const [conv] = await db.select().from(conversations).where(eq(conversations.id, id));
+    return conv;
+  }
+
+  async getConversationByUserId(userId: number): Promise<Conversation | undefined> {
+    const [conv] = await db.select().from(conversations).where(eq(conversations.userId, userId));
+    return conv;
+  }
+
+  async getMessages(conversationId: number, limit = 50, beforeId?: number): Promise<Message[]> {
+    const conditions = [eq(messages.conversationId, conversationId)];
+    if (beforeId) {
+      conditions.push(lt(messages.id, beforeId));
+    }
+
+    const fetchedMessages = await db
+      .select()
+      .from(messages)
+      .where(and(...conditions))
+      .orderBy(desc(messages.id))
+      .limit(limit);
+
+    // Return in ascending chronological order for proper chat display
+    return fetchedMessages.reverse();
+  }
+
+  async createMessage(msg: InsertMessage): Promise<Message> {
+    const [created] = await db.insert(messages).values(msg).returning();
+    
+    // Update last message timestamp & text snippet in conversation
+    const snippet = msg.message 
+      ? (msg.message.length > 60 ? msg.message.slice(0, 57) + "..." : msg.message)
+      : (msg.fileName ? `📎 ${msg.fileName}` : "Attachment");
+
+    await db.update(conversations)
+      .set({
+        lastMessageAt: new Date(),
+        lastMessageText: snippet,
+        updatedAt: new Date()
+      })
+      .where(eq(conversations.id, msg.conversationId));
+
+    return created;
+  }
+
+  async markMessagesAsRead(conversationId: number, readerType: 'user' | 'admin'): Promise<void> {
+    // If admin is reading, mark messages sent by 'user' as read
+    // If user is reading, mark messages sent by 'admin' as read
+    const targetSenderType = readerType === 'admin' ? 'user' : 'admin';
+    await db.update(messages)
+      .set({ readAt: new Date() })
+      .where(
+        and(
+          eq(messages.conversationId, conversationId),
+          eq(messages.senderType, targetSenderType),
+          isNull(messages.readAt)
+        )
+      );
+  }
+
+  async getAdminTotalUnreadCount(): Promise<number> {
+    const [result] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(messages)
+      .where(
+        and(
+          eq(messages.senderType, "user"),
+          isNull(messages.readAt)
+        )
+      );
+    return result?.count || 0;
+  }
+
+  async getUserUnreadCount(userId: number): Promise<number> {
+    const [conv] = await db.select({ id: conversations.id }).from(conversations).where(eq(conversations.userId, userId));
+    if (!conv) return 0;
+
+    const [result] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(messages)
+      .where(
+        and(
+          eq(messages.conversationId, conv.id),
+          eq(messages.senderType, "admin"),
+          isNull(messages.readAt)
+        )
+      );
+    return result?.count || 0;
   }
 }

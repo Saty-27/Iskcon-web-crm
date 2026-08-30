@@ -16,7 +16,7 @@ import { Donation, User } from '@shared/schema';
 import { Loader2, LogOut } from 'lucide-react';
 
 const Profile = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, isLoading, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -26,22 +26,30 @@ const Profile = () => {
     queryKey: ['/api/user/donations'],
     enabled: isAuthenticated && !!user,
     retry: false,
-    onError: (error) => {
-      console.log('Donations fetch error:', error);
-      // If we get a 401 error, redirect to login
-      if (error instanceof Error && error.message.includes('401')) {
+  });
+  
+  // Redirect to login ONLY when auth check is fully finished and user is not logged in
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
         setLocation('/login');
       }
     }
-  });
-  
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated && !user) {
-      setLocation('/login');
-    }
-  }, [isAuthenticated, user, setLocation]);
-  
+  }, [isAuthenticated, isLoading, setLocation]);
+
+  if (isLoading || (!isAuthenticated && localStorage.getItem('authToken'))) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
+    return null;
+  }
+
   const handleLogout = async () => {
     setIsLoggingOut(true);
     

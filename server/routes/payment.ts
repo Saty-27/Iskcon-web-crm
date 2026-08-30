@@ -32,7 +32,7 @@ router.post('/initiate', async (req, res) => {
     const txnid = `ISKCON_${nanoid(8)}`;
     
     // Determine success and failure URLs
-    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+    const protocol = 'http';  // Force HTTP since server doesn't have SSL certificate
     const host = req.headers.host || req.hostname;
     const baseUrl = `${protocol}://${host}`;
     
@@ -127,7 +127,7 @@ router.post('/success', async (req, res) => {
         // Update donation status
         await storage.updateDonation(donation.id, {
           status: 'completed',
-          paymentId: paymentResponse.mihpayid || paymentResponse.txnid,
+          paymentGatewayResponse: JSON.stringify(paymentResponse),
           invoiceNumber
         });
         
@@ -209,10 +209,13 @@ router.post('/success', async (req, res) => {
       categoryName: purpose
     });
     
-    res.redirect(`/donate/thank-you?${params.toString()}`);
+    const finalTxnid = paymentResponse?.txnid || '';
+    const finalAmount = paymentResponse?.amount || '';
+    res.redirect(`/payment/success?txnid=${encodeURIComponent(finalTxnid)}&amount=${encodeURIComponent(finalAmount)}`);
   } catch (error) {
     console.error('PayU success callback error:', error);
-    res.redirect('/donate/payment-failed');
+    const fallbackTxnid = req.body?.txnid || '';
+    res.redirect(`/payment/failure?txnid=${encodeURIComponent(fallbackTxnid)}&error=payment_failed`);
   }
 });
 

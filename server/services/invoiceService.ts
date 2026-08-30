@@ -9,6 +9,13 @@ import { Readable } from 'stream';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { nanoid } from 'nanoid';
+import twilio from 'twilio';
+
+const twilioClient = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN)
+  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+  : null;
+
+import { drawISKCONReceipt, formatDisplayReceiptNo, type ReceiptDetailData } from './receiptPdfGenerator';
 
 interface DonationReceipt {
   txnid: string;
@@ -20,6 +27,9 @@ interface DonationReceipt {
   paymentMethod: string;
   purpose: string;
   invoiceNumber: string;
+  address?: string;
+  pin?: string;
+  panCard?: string;
 }
 
 /**
@@ -29,15 +39,29 @@ interface DonationReceipt {
  * @returns Buffer containing the PDF data
  */
 export async function generateDonationPDF(donation: DonationReceipt): Promise<Buffer> {
-  // Create a PDF document
-  const doc = new PDFDocument({ margin: 50 });
+  // Create an A4 PDF document with custom margins
+  const doc = new PDFDocument({ size: 'A4', margin: 0, autoFirstPage: true });
   
   // Collect PDF output to buffer
   const buffers: Buffer[] = [];
   doc.on('data', buffers.push.bind(buffers));
   
-  // Set up the PDF
-  await setupPDF(doc, donation);
+  const receiptDetail: ReceiptDetailData = {
+    receiptNo: formatDisplayReceiptNo(donation.invoiceNumber),
+    date: donation.date || new Date(),
+    amount: donation.amount,
+    name: donation.name,
+    address: donation.address || '',
+    pin: donation.pin || '',
+    pan: donation.panCard || '',
+    mobile: donation.phone,
+    email: donation.email,
+    paymentMode: donation.paymentMethod || 'Online / UPI',
+    paymentDetails: donation.txnid,
+    purpose: donation.purpose || 'General Donation'
+  };
+
+  drawISKCONReceipt(doc, receiptDetail);
   
   // Finish the PDF
   doc.end();
@@ -49,89 +73,6 @@ export async function generateDonationPDF(donation: DonationReceipt): Promise<Bu
       resolve(pdfData);
     });
   });
-}
-
-/**
- * Set up the PDF document with donation receipt content
- * 
- * @param doc PDF Document
- * @param donation Donation details
- */
-async function setupPDF(doc: PDFKit.PDFDocument, donation: DonationReceipt) {
-  // Add title 
-  doc.fontSize(20)
-     .font('Helvetica-Bold')
-     .text('DONATION RECEIPT', { align: 'center' });
-  
-  doc.moveDown();
-  
-  // Add ISKCON Logo (would use an actual logo in production)
-  doc.fontSize(16)
-     .font('Helvetica-Bold')
-     .text('ISKCON JUHU', { align: 'center' });
-  
-  doc.fontSize(12)
-     .font('Helvetica')
-     .text('Hare Krishna Land, Juhu, Mumbai - 400049', { align: 'center' });
-  
-  doc.moveDown(2);
-  
-  // Add receipt number and date
-  doc.font('Helvetica-Bold')
-     .text(`Receipt Number: ${donation.invoiceNumber}`, { align: 'right' });
-  
-  doc.font('Helvetica')
-     .text(`Date: ${donation.date.toLocaleDateString()}`, { align: 'right' });
-  
-  doc.moveDown(2);
-  
-  // Add donation details
-  doc.font('Helvetica-Bold')
-     .text('Donation Details', { underline: true });
-  
-  doc.moveDown(0.5);
-  
-  // Add donor information
-  doc.font('Helvetica')
-     .text(`Donor Name: ${donation.name}`);
-  
-  if (donation.email) {
-    doc.text(`Email: ${donation.email}`);
-  }
-  
-  if (donation.phone) {
-    doc.text(`Phone: ${donation.phone}`);
-  }
-  
-  doc.moveDown();
-  
-  // Add donation purpose and amount
-  doc.text(`Purpose: ${donation.purpose}`);
-  doc.text(`Amount: ₹${donation.amount.toFixed(2)}`);
-  doc.text(`Payment Method: ${donation.paymentMethod}`);
-  doc.text(`Transaction ID: ${donation.txnid}`);
-  
-  doc.moveDown(2);
-  
-  // Add thank you message
-  doc.font('Helvetica-Bold')
-     .fillColor('#553c9a')
-     .text('Thank You for Your Generous Contribution!', { align: 'center' });
-  
-  doc.font('Helvetica')
-     .fillColor('black')
-     .text('Your support helps us serve Krishna and His devotees.', { align: 'center' });
-  
-  doc.moveDown();
-  
-  // Add footer
-  doc.fontSize(8)
-     .text('This is an electronically generated receipt and does not require a signature.', { align: 'center' });
-  
-  doc.moveDown(0.5);
-  
-  doc.fontSize(8)
-     .text('For any queries related to your donation, please contact us at donations@iskconjuhu.in', { align: 'center' });
 }
 
 /**

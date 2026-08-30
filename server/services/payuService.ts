@@ -51,10 +51,17 @@ export function generateHash(paymentData: PaymentRequest): string {
   }
   
   // The order of the fields is important for hash generation
-  const hashString = `${payuConfig.merchantKey}|${paymentData.txnid}|${paymentData.amount}|${paymentData.productinfo}|${paymentData.firstname}|${paymentData.email}|||||||||||${payuConfig.merchantSalt}`;
+  // PayU hash format: key|txnid|amount|productinfo|firstname|email|udf1|udf2|udf3|udf4|udf5||||||SALT
+  const hashString = `${payuConfig.merchantKey}|${paymentData.txnid}|${paymentData.amount}|${paymentData.productinfo}|${paymentData.firstname}|${paymentData.email}|${paymentData.udf1 || ''}|${paymentData.udf2 || ''}|${paymentData.udf3 || ''}|${paymentData.udf4 || ''}|${paymentData.udf5 || ''}||||||${payuConfig.merchantSalt}`;
+  
+  console.log('PayU Hash String:', hashString);
   
   // Generate SHA512 hash
-  return crypto.SHA512(hashString).toString();
+  const hash = crypto.SHA512(hashString).toString();
+  console.log('PayU Generated Hash:', hash);
+  return hash;
+  
+  // Generate SHA512 hash
 }
 
 // Verify PayU response hash

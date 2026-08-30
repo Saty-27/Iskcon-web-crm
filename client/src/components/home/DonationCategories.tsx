@@ -6,6 +6,7 @@ import { Link } from 'wouter';
 const DonationCategories = () => {
   const { data: categories = [], isLoading } = useQuery<DonationCategory[]>({
     queryKey: ['/api/donation-categories'],
+    staleTime: 5 * 60 * 1000,
   });
   
   if (isLoading) {
@@ -66,6 +67,8 @@ const DonationCategories = () => {
                 src={category.imageUrl} 
                 alt={category.name}
                 className="w-full h-48 object-cover"
+                loading="lazy"
+                decoding="async"
               />
               <div className="p-6">
                 <h3 className="font-poppins font-semibold text-xl text-primary mb-2">{category.name}</h3>

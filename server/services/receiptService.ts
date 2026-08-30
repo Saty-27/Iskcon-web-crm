@@ -3,6 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import nodemailer from 'nodemailer';
 
+import { drawISKCONReceipt, formatDisplayReceiptNo, type ReceiptDetailData } from './receiptPdfGenerator';
+
 export interface ReceiptData {
   txnid: string;
   amount: number;
@@ -13,6 +15,9 @@ export interface ReceiptData {
   invoiceNumber: string;
   date: Date;
   panCard?: string;
+  address?: string;
+  pin?: string;
+  paymentMethod?: string;
 }
 
 // Create email transporter (using Gmail SMTP - you'll need to configure this)
@@ -30,91 +35,29 @@ const createEmailTransporter = () => {
 export async function generatePDFReceipt(receiptData: ReceiptData): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
-      const doc = new PDFKit({ size: 'A4', margin: 50 });
+      const doc = new PDFKit({ size: 'A4', margin: 0, autoFirstPage: true });
       const chunks: Buffer[] = [];
 
       doc.on('data', (chunk) => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
-      // Header with ISKCON logo and details
-      doc.fontSize(20)
-         .fillColor('#FF6B35')
-         .text('ISKCON JUHU', 50, 50, { align: 'center' })
-         .fontSize(14)
-         .fillColor('#000')
-         .text('International Society for Krishna Consciousness', 50, 80, { align: 'center' })
-         .text('Hare Krishna Land, Juhu, Mumbai - 400049', 50, 100, { align: 'center' })
-         .text('Phone: +91-22-2620-6860 | Email: donations@iskconjuhu.org', 50, 120, { align: 'center' });
-
-      // Title
-      doc.fontSize(18)
-         .fillColor('#FF6B35')
-         .text('DONATION RECEIPT', 50, 160, { align: 'center' })
-         .fontSize(12)
-         .fillColor('#000')
-         .text('(Eligible for Tax Deduction under Section 80G)', 50, 185, { align: 'center' });
-
-      // Receipt details box
-      doc.rect(50, 210, 495, 200)
-         .stroke()
-         .fontSize(12);
-
-      // Receipt content
-      const startY = 230;
-      const lineHeight = 25;
-      let currentY = startY;
-
-      const addReceiptLine = (label: string, value: string) => {
-        doc.text(label + ':', 70, currentY, { width: 150 })
-           .text(value, 250, currentY, { width: 250 });
-        currentY += lineHeight;
+      const receiptDetail: ReceiptDetailData = {
+        receiptNo: formatDisplayReceiptNo(receiptData.invoiceNumber),
+        date: receiptData.date || new Date(),
+        amount: receiptData.amount,
+        name: receiptData.name,
+        address: receiptData.address || '',
+        pin: receiptData.pin || '',
+        pan: receiptData.panCard || '',
+        mobile: receiptData.phone,
+        email: receiptData.email,
+        paymentMode: receiptData.paymentMethod || 'Online / UPI',
+        paymentDetails: receiptData.txnid,
+        purpose: receiptData.purpose || 'General Donation'
       };
 
-      addReceiptLine('Receipt No', receiptData.invoiceNumber);
-      addReceiptLine('Transaction ID', receiptData.txnid);
-      addReceiptLine('Date', receiptData.date.toLocaleDateString('en-IN'));
-      addReceiptLine('Donor Name', receiptData.name);
-      addReceiptLine('Email', receiptData.email);
-      addReceiptLine('Phone', receiptData.phone);
-      if (receiptData.panCard) {
-        addReceiptLine('PAN Card', receiptData.panCard);
-      }
-      
-      // Donation Purpose - highlighted section
-      doc.fontSize(14)
-         .fillColor('#FF6B35')
-         .text('Donation Purpose:', 70, currentY, { width: 150 })
-         .fillColor('#000')
-         .text(receiptData.purpose, 250, currentY, { width: 250 });
-      currentY += lineHeight;
-      
-      // Amount in box
-      doc.fontSize(14)
-         .fillColor('#FF6B35')
-         .text('Amount: ₹' + receiptData.amount.toLocaleString('en-IN'), 70, currentY, { width: 400 });
-
-      // Tax benefit information
-      currentY += 50;
-      doc.fontSize(10)
-         .fillColor('#000')
-         .text('This donation is eligible for tax deduction under Section 80G of the Income Tax Act, 1961.', 50, currentY, { width: 495, align: 'center' })
-         .text('Please retain this receipt for your tax filing purposes.', 50, currentY + 20, { width: 495, align: 'center' });
-
-      // Footer
-      doc.fontSize(8)
-         .fillColor('#666')
-         .text('This is a computer-generated receipt and does not require a signature.', 50, 720, { width: 495, align: 'center' })
-         .text('Generated on: ' + new Date().toLocaleString('en-IN'), 50, 735, { width: 495, align: 'center' });
-
-      // Add gratitude message
-      doc.fontSize(12)
-         .fillColor('#FF6B35')
-         .text('🙏 Thank you for your generous contribution to ISKCON Juhu', 50, 600, { width: 495, align: 'center' })
-         .fontSize(10)
-         .fillColor('#000')
-         .text('May Lord Krishna bless you abundantly for your devotion and generosity.', 50, 625, { width: 495, align: 'center' });
-
+      drawISKCONReceipt(doc, receiptDetail);
       doc.end();
     } catch (error) {
       reject(error);

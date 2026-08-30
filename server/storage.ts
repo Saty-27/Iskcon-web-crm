@@ -18,18 +18,31 @@ import {
   Subscription, InsertSubscription, subscriptions,
   Stat, InsertStat, stats,
   Schedule, InsertSchedule, schedules,
-  BlogPost, InsertBlogPost, blogPosts
+  BlogPost, InsertBlogPost, blogPosts,
+  Conversation, InsertConversation, conversations,
+  Message, InsertMessage, messages,
+  AuditLog, InsertAuditLog, auditLogs
 } from "@shared/schema";
 
 export interface IStorage {
-  // User management
+  // User & Staff management
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getUsers(): Promise<User[]>;
+  getStaffUsers(): Promise<User[]>;
+  createStaffUser(user: any): Promise<User>;
+  updateStaffUser(id: number, userData: Partial<User>): Promise<User | undefined>;
+  toggleUserStatus(id: number, isActive: boolean): Promise<User | undefined>;
+  resetUserPassword(id: number, passwordHash: string): Promise<boolean>;
   updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
   deleteUser(id: number): Promise<boolean>;
+
+  // Audit log management
+  createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogs(limit?: number, offset?: number, section?: string, userId?: number): Promise<AuditLog[]>;
+  getAuditLogsCount(section?: string, userId?: number): Promise<number>;
   
   // Banner management
   getBanners(): Promise<Banner[]>;
@@ -177,6 +190,17 @@ export interface IStorage {
   createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
   updateBlogPost(id: number, postData: Partial<BlogPost>): Promise<BlogPost | undefined>;
   deleteBlogPost(id: number): Promise<boolean>;
+
+  // Real-time Chat management
+  getOrCreateConversation(userId: number): Promise<Conversation>;
+  getConversations(limit?: number, offset?: number): Promise<any[]>;
+  getConversationById(id: number): Promise<Conversation | undefined>;
+  getConversationByUserId(userId: number): Promise<Conversation | undefined>;
+  getMessages(conversationId: number, limit?: number, beforeId?: number): Promise<Message[]>;
+  createMessage(msg: InsertMessage): Promise<Message>;
+  markMessagesAsRead(conversationId: number, readerType: 'user' | 'admin'): Promise<void>;
+  getAdminTotalUnreadCount(): Promise<number>;
+  getUserUnreadCount(userId: number): Promise<number>;
 }
 
 export class MemStorage implements IStorage {

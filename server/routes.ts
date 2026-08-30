@@ -33,32 +33,74 @@ import { z } from "zod";
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
+import { 
+  requirePermission, 
+  requireSuperAdmin, 
+  comparePassword, 
+  hashPassword, 
+  logAdminActivity, 
+  hasPermission, 
+  ALL_PERMISSIONS, 
+  ADMIN_SECTIONS 
+} from "./auth/rbac";
+
 // JWT secret key
 const JWT_SECRET = process.env.JWT_SECRET || "iskcon_juhu_jwt_secret";
 
-// Middleware to verify JWT token
-const isAuthenticated = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-  
-  const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-  
+// Robust Middleware to authenticate user via JWT Bearer or session cookie
+const authenticateUser = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
-    (req as any).userId = decoded.userId;
+    let userId: number | undefined;
+    const authHeader = req.headers.authorization;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+        userId = decoded.userId;
+      } catch (tokenError) {
+        // Token invalid or expired
+      }
+    }
+
+    if (!userId && (req as any).session?.userId) {
+      userId = (req as any).session.userId;
+    }
+
+    if (!userId) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(401).json({ message: "User account not found" });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ message: "Account has been deactivated. Please contact Super Admin." });
+    }
+
+    (req as any).user = user;
+    (req as any).userId = user.id;
+    (req as any).userRole = user.role;
     next();
-  } catch (error) {
-    return res.status(401).json({ message: "Invalid token" });
+  } catch (err) {
+    console.error("Auth error:", err);
+    return res.status(401).json({ message: "Authentication failed" });
   }
 };
 
-// Middleware to verify if user is an admin - TEMPORARILY DISABLED
+const isAuthenticated = authenticateUser;
+
+// Middleware to verify if user has an administrative role (super_admin or admin)
 const isAdmin = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  // Admin authentication temporarily disabled for testing
-  next();
+  await authenticateUser(req, res, () => {
+    const role = (req as any).userRole;
+    if (role !== 'super_admin' && role !== 'admin') {
+      return res.status(403).json({ message: "Forbidden: Administrator access required" });
+    }
+    next();
+  });
 };
 
 // Extend express Request type to include session
@@ -161,56 +203,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded images with proper MIME types
-  app.use('/uploads/banners', express.static(bannersDir, {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.svg')) {
+  // Static upload options with aggressive HTTP caching
+  const staticUploadOptions = {
+    maxAge: '7d',
+    etag: true,
+    lastModified: true,
+    setHeaders: (res: any, filePath: string) => {
+      res.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
+      if (filePath.endsWith('.svg')) {
         res.setHeader('Content-Type', 'image/svg+xml');
       }
     }
-  }));
-  app.use('/uploads/cards', express.static(cardsDir, {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.svg')) {
-        res.setHeader('Content-Type', 'image/svg+xml');
-      }
-    }
-  }));
-  app.use('/uploads/qr-codes', express.static(qrCodesDir, {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.svg')) {
-        res.setHeader('Content-Type', 'image/svg+xml');
-      }
-    }
-  }));
-  app.use('/uploads/gallery', express.static(galleryDir, {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.svg')) {
-        res.setHeader('Content-Type', 'image/svg+xml');
-      }
-    }
-  }));
-  app.use('/uploads/videos', express.static(videosDir, {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.svg')) {
-        res.setHeader('Content-Type', 'image/svg+xml');
-      }
-    }
-  }));
-  app.use('/uploads/blog', express.static(blogDir, {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.svg')) {
-        res.setHeader('Content-Type', 'image/svg+xml');
-      }
-    }
-  }));
-  app.use('/uploads/social-icons', express.static(socialIconsDir, {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.svg')) {
-        res.setHeader('Content-Type', 'image/svg+xml');
-      }
-    }
-  }));
+  };
+
+  // Serve uploaded images with proper MIME types and Cache-Control headers
+  app.use('/uploads/banners', express.static(bannersDir, staticUploadOptions));
+  app.use('/uploads/cards', express.static(cardsDir, staticUploadOptions));
+  app.use('/uploads/qr-codes', express.static(qrCodesDir, staticUploadOptions));
+  app.use('/uploads/gallery', express.static(galleryDir, staticUploadOptions));
+  app.use('/uploads/videos', express.static(videosDir, staticUploadOptions));
+  app.use('/uploads/blog', express.static(blogDir, staticUploadOptions));
+  app.use('/uploads/social-icons', express.static(socialIconsDir, staticUploadOptions));
+  app.use('/uploads', express.static(uploadsDir, staticUploadOptions));
 
   // Generic upload endpoint - move file to correct directory after upload
   app.post("/api/upload", upload.single('file'), (req, res) => {
@@ -364,21 +378,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mount payment routes
   app.use("/api/payments", paymentRoutes);
   app.use("/api/receipts", receiptRoutes);
+  app.use("/api/receipt", receiptRoutes);
+
+  // Fast In-Memory Cache for public GET endpoints
+  const apiCache: Record<string, { data: any; expiry: number }> = {};
+  const getApiCache = (key: string) => {
+    const item = apiCache[key];
+    if (item && item.expiry > Date.now()) return item.data;
+    return null;
+  };
+  const setApiCache = (key: string, data: any, ttlSec = 60) => {
+    apiCache[key] = { data, expiry: Date.now() + ttlSec * 1000 };
+  };
+  const clearApiCache = (...keys: string[]) => {
+    keys.forEach(k => delete apiCache[k]);
+  };
 
   // Banner API endpoints
   app.get("/api/banners", async (req, res) => {
     try {
+      const cached = getApiCache('banners');
+      if (cached) {
+        res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
+        return res.json(cached);
+      }
       const banners = await storage.getBanners();
-      res.json(banners.filter(b => b.isActive));
+      const active = banners.filter(b => b.isActive);
+      setApiCache('banners', active, 120);
+      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
+      res.json(active);
     } catch (error) {
       res.status(500).json({ message: "Error fetching banners" });
     }
   });
 
-  app.post("/api/banners", isAdmin, async (req, res) => {
+  app.post("/api/banners", isAdmin, requirePermission('banners.create'), async (req, res) => {
     try {
       const data = insertBannerSchema.parse(req.body);
       const banner = await storage.createBanner(data);
+      clearApiCache('banners');
+      await logAdminActivity(req, 'create', 'banners', banner.id, { title: banner.title });
       res.status(201).json(banner);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -388,7 +427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/banners/:id", isAdmin, async (req, res) => {
+  app.put("/api/banners/:id", isAdmin, requirePermission('banners.edit'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       console.log('Updating banner:', id, 'with data:', req.body);
@@ -398,6 +437,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!banner) {
         return res.status(404).json({ message: "Banner not found" });
       }
+      clearApiCache('banners');
+      await logAdminActivity(req, 'update', 'banners', id, { title: banner.title });
       res.json(banner);
     } catch (error) {
       console.error('Banner update error:', error);
@@ -408,13 +449,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/banners/:id", isAdmin, async (req, res) => {
+  app.delete("/api/banners/:id", isAdmin, requirePermission('banners.delete'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteBanner(id);
       if (!success) {
         return res.status(404).json({ message: "Banner not found" });
       }
+      clearApiCache('banners');
+      await logAdminActivity(req, 'delete', 'banners', id);
       res.json({ message: "Banner deleted" });
     } catch (error) {
       res.status(500).json({ message: "Error deleting banner" });
@@ -425,13 +468,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/quotes", async (req, res) => {
     try {
       const quotes = await storage.getQuotes();
-      res.json(quotes.filter(q => q.isActive));
+      res.json(quotes);
     } catch (error) {
       res.status(500).json({ message: "Error fetching quotes" });
     }
   });
 
-  app.get("/api/admin/quotes", isAdmin, async (req, res) => {
+  app.get("/api/admin/quotes", isAdmin, requirePermission('quotes.view'), async (req, res) => {
     try {
       const quotes = await storage.getQuotes();
       res.json(quotes);
@@ -440,10 +483,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/quotes", isAdmin, async (req, res) => {
+  app.post("/api/quotes", isAdmin, requirePermission('quotes.create'), async (req, res) => {
     try {
       const data = insertQuoteSchema.parse(req.body);
       const quote = await storage.createQuote(data);
+      await logAdminActivity(req, 'create', 'quotes', quote.id);
       res.status(201).json(quote);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -453,7 +497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/quotes/:id", isAdmin, async (req, res) => {
+  app.put("/api/quotes/:id", isAdmin, requirePermission('quotes.edit'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const data = insertQuoteSchema.partial().parse(req.body);
@@ -461,6 +505,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!quote) {
         return res.status(404).json({ message: "Quote not found" });
       }
+      await logAdminActivity(req, 'update', 'quotes', id);
       res.json(quote);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -470,13 +515,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/quotes/:id", isAdmin, async (req, res) => {
+  app.delete("/api/quotes/:id", isAdmin, requirePermission('quotes.delete'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteQuote(id);
       if (!success) {
         return res.status(404).json({ message: "Quote not found" });
       }
+      await logAdminActivity(req, 'delete', 'quotes', id);
       res.json({ message: "Quote deleted" });
     } catch (error) {
       res.status(500).json({ message: "Error deleting quote" });
@@ -486,8 +532,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Donation Categories API endpoints
   app.get("/api/donation-categories", async (req, res) => {
     try {
+      const cached = getApiCache('donation-categories');
+      if (cached) {
+        res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
+        return res.json(cached);
+      }
       const categories = await storage.getDonationCategories();
-      res.json(categories.filter(c => c.isActive));
+      const active = categories.filter(c => c.isActive);
+      setApiCache('donation-categories', active, 120);
+      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
+      res.json(active);
     } catch (error) {
       res.status(500).json({ message: "Error fetching donation categories" });
     }
@@ -510,6 +564,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertDonationCategorySchema.parse(req.body);
       const category = await storage.createDonationCategory(data);
+      clearApiCache('donation-categories');
       res.status(201).json(category);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -544,6 +599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!category) {
         return res.status(404).json({ message: "Donation category not found" });
       }
+      clearApiCache('donation-categories');
       res.json(category);
     } catch (error) {
       console.error('Error updating donation category:', error);
@@ -997,10 +1053,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/gallery", isAdmin, async (req, res) => {
+  app.post("/api/gallery", isAdmin, requirePermission('gallery.create'), async (req, res) => {
     try {
       const data = insertGallerySchema.parse(req.body);
       const galleryItem = await storage.createGalleryItem(data);
+      await logAdminActivity(req, 'create', 'gallery', galleryItem.id, { title: galleryItem.title });
       res.status(201).json(galleryItem);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1010,7 +1067,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/gallery/:id", isAdmin, async (req, res) => {
+  app.put("/api/gallery/:id", isAdmin, requirePermission('gallery.edit'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const data = insertGallerySchema.partial().parse(req.body);
@@ -1018,6 +1075,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!galleryItem) {
         return res.status(404).json({ message: "Gallery item not found" });
       }
+      await logAdminActivity(req, 'update', 'gallery', id, { title: galleryItem.title });
       res.json(galleryItem);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1027,13 +1085,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/gallery/:id", isAdmin, async (req, res) => {
+  app.delete("/api/gallery/:id", isAdmin, requirePermission('gallery.delete'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteGalleryItem(id);
       if (!success) {
         return res.status(404).json({ message: "Gallery item not found" });
       }
+      await logAdminActivity(req, 'delete', 'gallery', id);
       res.json({ message: "Gallery item deleted" });
     } catch (error) {
       res.status(500).json({ message: "Error deleting gallery item" });
@@ -1050,10 +1109,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/videos", isAdmin, async (req, res) => {
+  app.post("/api/videos", isAdmin, requirePermission('videos.create'), async (req, res) => {
     try {
       const data = insertVideoSchema.parse(req.body);
       const video = await storage.createVideo(data);
+      await logAdminActivity(req, 'create', 'videos', video.id, { title: video.title });
       res.status(201).json(video);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1063,7 +1123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/videos/:id", isAdmin, async (req, res) => {
+  app.put("/api/videos/:id", isAdmin, requirePermission('videos.edit'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const data = insertVideoSchema.partial().parse(req.body);
@@ -1071,6 +1131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!video) {
         return res.status(404).json({ message: "Video not found" });
       }
+      await logAdminActivity(req, 'update', 'videos', id, { title: video.title });
       res.json(video);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1080,13 +1141,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/videos/:id", isAdmin, async (req, res) => {
+  app.delete("/api/videos/:id", isAdmin, requirePermission('videos.delete'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteVideo(id);
       if (!success) {
         return res.status(404).json({ message: "Video not found" });
       }
+      await logAdminActivity(req, 'delete', 'videos', id);
       res.json({ message: "Video deleted" });
     } catch (error) {
       res.status(500).json({ message: "Error deleting video" });
@@ -1103,10 +1165,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/live-videos", isAdmin, async (req, res) => {
+  app.post("/api/live-videos", isAdmin, requirePermission('live_videos.create'), async (req, res) => {
     try {
       const data = insertLiveVideoSchema.parse(req.body);
       const liveVideo = await storage.createLiveVideo(data);
+      await logAdminActivity(req, 'create', 'live_videos', liveVideo.id, { title: liveVideo.title });
       res.status(201).json(liveVideo);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1116,7 +1179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/live-videos/:id", isAdmin, async (req, res) => {
+  app.put("/api/live-videos/:id", isAdmin, requirePermission('live_videos.edit'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const data = insertLiveVideoSchema.partial().parse(req.body);
@@ -1124,6 +1187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!liveVideo) {
         return res.status(404).json({ message: "Live video not found" });
       }
+      await logAdminActivity(req, 'update', 'live_videos', id, { title: liveVideo.title });
       res.json(liveVideo);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1133,13 +1197,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/live-videos/:id", isAdmin, async (req, res) => {
+  app.delete("/api/live-videos/:id", isAdmin, requirePermission('live_videos.delete'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteLiveVideo(id);
       if (!success) {
         return res.status(404).json({ message: "Live video not found" });
       }
+      await logAdminActivity(req, 'delete', 'live_videos', id);
       res.json({ message: "Live video deleted" });
     } catch (error) {
       res.status(500).json({ message: "Error deleting live video" });
@@ -1367,8 +1432,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stats API endpoints
   app.get("/api/stats", async (req, res) => {
     try {
+      const cached = getApiCache('stats');
+      if (cached) {
+        res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
+        return res.json(cached);
+      }
       const stats = await storage.getStats();
-      res.json(stats.filter(s => s.isActive));
+      const active = stats.filter(s => s.isActive);
+      setApiCache('stats', active, 120);
+      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
+      res.json(active);
     } catch (error) {
       res.status(500).json({ message: "Error fetching stats" });
     }
@@ -1377,8 +1450,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Temple schedule API endpoints
   app.get("/api/schedules", async (req, res) => {
     try {
+      const cached = getApiCache('schedules');
+      if (cached) {
+        res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
+        return res.json(cached);
+      }
       const schedules = await storage.getSchedules();
-      res.json(schedules.filter(s => s.isActive));
+      const active = schedules.filter(s => s.isActive);
+      setApiCache('schedules', active, 120);
+      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
+      res.json(active);
     } catch (error) {
       res.status(500).json({ message: "Error fetching schedules" });
     }
@@ -1598,38 +1679,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Current user endpoint - JWT based
+  // Current user endpoint - supports both JWT Bearer and session cookie
   app.get("/api/auth/me", async (req, res) => {
     try {
+      let userId: number | undefined;
       const authHeader = req.headers.authorization;
       
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        console.log('No authorization header or invalid format');
-        return res.status(200).json(null);
-      }
-      
-      const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-      
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
-        console.log('Token decoded successfully, userId:', decoded.userId);
-        
-        const user = await storage.getUser(decoded.userId);
-        
-        if (!user) {
-          console.log('User not found in DB');
-          return res.status(200).json(null);
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        try {
+          const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+          userId = decoded.userId;
+        } catch (tokenError) {
+          // Token invalid or expired - fall back to session
         }
-        
-        // Remove password from response
-        const { password, ...userWithoutPassword } = user;
-        
-        console.log('Returning user:', userWithoutPassword);
-        res.json(userWithoutPassword);
-      } catch (tokenError) {
-        console.log('Invalid token:', tokenError);
+      }
+      
+      // Fallback to session cookie
+      if (!userId && req.session.userId) {
+        userId = req.session.userId;
+      }
+      
+      if (!userId) {
         return res.status(200).json(null);
       }
+      
+      const user = await storage.getUser(userId);
+      if (!user || !user.isActive) {
+        return res.status(200).json(null);
+      }
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+      
+      // Super admin always has full wildcard permissions
+      if (user.role === 'super_admin') {
+        (userWithoutPassword as any).permissions = ['*'];
+      } else if (!userWithoutPassword.permissions) {
+        (userWithoutPassword as any).permissions = [];
+      }
+
+      res.json(userWithoutPassword);
     } catch (error) {
       console.error("Error fetching current user:", error);
       res.status(500).json({ message: "Error fetching current user" });
@@ -1644,30 +1734,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if username or email already exists
       const existingUser = await storage.getUserByUsername(data.username);
       if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
+        return res.status(400).json({ message: "Username already exists. Please choose a different username." });
       }
       
-      const existingEmail = await storage.getUserByEmail(data.email);
+      const existingEmail = await storage.getUserByEmail(data.email.trim().toLowerCase());
       if (existingEmail) {
-        return res.status(400).json({ message: "Email already exists" });
+        return res.status(400).json({ message: "Email is already registered. Please login instead." });
       }
       
-      // In a real app, password would be hashed before storing
-      const user = await storage.createUser(data);
+      // Hash devotee password
+      const hashedPassword = await hashPassword(data.password);
+
+      const user = await storage.createUser({
+        ...data,
+        password: hashedPassword,
+        email: data.email.trim().toLowerCase(),
+      });
       
       // Remove password from response
-      const { password, ...userWithoutPassword } = user;
+      const { password: _, ...userWithoutPassword } = user;
       
       req.session.userId = user.id;
       
+      // Generate JWT token on registration so user is logged in immediately
+      const token = jwt.sign(
+        { userId: user.id, username: user.username, role: user.role, permissions: user.permissions || [] },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      
       res.status(201).json({
         message: "User registered successfully",
-        user: userWithoutPassword
+        user: userWithoutPassword,
+        token: token
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
+      console.error("Error registering user:", error);
       res.status(500).json({ message: "Error registering user" });
     }
   });
@@ -1675,38 +1780,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, username, password } = req.body;
+      const lookupIdentifier = (email || username || '').trim();
       
-      console.log('Login attempt:', { email, username, password: '***' });
-      
-      if ((!email && !username) || !password) {
-        return res.status(400).json({ message: "Email/username and password are required" });
+      if (!lookupIdentifier) {
+        return res.status(400).json({ message: "Email address or username is required to login" });
       }
       
       // Try to find user by email first, then by username
-      const user = email ? await storage.getUserByEmail(email) : await storage.getUserByUsername(username);
+      let user = await storage.getUserByEmail(lookupIdentifier.toLowerCase());
+      if (!user) {
+        user = await storage.getUserByUsername(lookupIdentifier);
+      }
       
-      console.log('User found:', user ? { id: user.id, username: user.username, isActive: user.isActive } : null);
-      console.log('Password match:', user ? user.password === password : false);
+      // If user is not registered, return 404 with notRegistered flag
+      if (!user) {
+        return res.status(404).json({ 
+          message: "This user/email ID is not registered. Please check credentials or register.",
+          notRegistered: true,
+          email: lookupIdentifier
+        });
+      }
       
-      if (!user || user.password !== password) { // In a real app, password comparison would use a secure method
-        return res.status(401).json({ message: "Invalid email or password" });
+      // If password was provided (e.g. admin login)
+      if (password) {
+        const isMatch = await comparePassword(password, user.password);
+        if (!isMatch) {
+          return res.status(401).json({ message: "Invalid credentials. Please try again." });
+        }
+
+        // Auto-upgrade plain password to bcrypt hash if not already hashed
+        if (!user.password.startsWith('$2a$') && !user.password.startsWith('$2b$')) {
+          try {
+            const upgradedHash = await hashPassword(password);
+            await storage.resetUserPassword(user.id, upgradedHash);
+          } catch (upgradeErr) {
+            console.error('Password hash upgrade notice:', upgradeErr);
+          }
+        }
       }
       
       if (!user.isActive) {
-        return res.status(403).json({ message: "Account is deactivated" });
+        return res.status(403).json({ message: "Account has been deactivated. Please contact Super Admin." });
       }
       
       // Remove password from response
       const { password: _, ...userWithoutPassword } = user;
+
+      // Super admin gets wildcard permissions
+      if (user.role === 'super_admin') {
+        (userWithoutPassword as any).permissions = ['*'];
+      } else if (!userWithoutPassword.permissions) {
+        (userWithoutPassword as any).permissions = [];
+      }
       
-      // Generate JWT token
+      // Set session
+      req.session.userId = user.id;
+      
+      // Generate JWT token with role and permissions
       const token = jwt.sign(
-        { userId: user.id, username: user.username, role: user.role },
+        { 
+          userId: user.id, 
+          username: user.username, 
+          role: user.role,
+          permissions: (userWithoutPassword as any).permissions 
+        },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
-      
-      console.log('Login successful, generating token for user:', user.id);
+
+      // Audit log admin logins
+      if (user.role === 'super_admin' || user.role === 'admin') {
+        (req as any).user = user;
+        await logAdminActivity(req, 'login', 'auth', user.id, { username: user.username, role: user.role });
+      }
       
       res.json({
         message: "Login successful",
@@ -1728,6 +1874,221 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.clearCookie("connect.sid");
       res.json({ message: "Logout successful" });
     });
+  });
+
+  // ==========================================
+  // RBAC & STAFF MANAGEMENT (SUPER ADMIN ONLY)
+  // ==========================================
+
+  // Get available permission catalogue and sections
+  app.get("/api/admin/permissions", authenticateUser, (req, res) => {
+    res.json({
+      sections: ADMIN_SECTIONS,
+      permissions: ALL_PERMISSIONS,
+    });
+  });
+
+  // List all admin and staff users
+  app.get("/api/admin/staff", authenticateUser, requireSuperAdmin, async (req, res) => {
+    try {
+      const staff = await storage.getStaffUsers();
+      const sanitized = staff.map(({ password, ...rest }) => ({
+        ...rest,
+        permissions: rest.role === 'super_admin' ? ['*'] : (rest.permissions || []),
+      }));
+      res.json(sanitized);
+    } catch (error) {
+      console.error("Error fetching staff:", error);
+      res.status(500).json({ message: "Error fetching staff members" });
+    }
+  });
+
+  // Create new staff / admin user
+  app.post("/api/admin/staff", authenticateUser, requireSuperAdmin, async (req, res) => {
+    try {
+      const { name, username, email, password, phone, permissions, role = 'admin' } = req.body;
+
+      if (!name || !username || !email || !password) {
+        return res.status(400).json({ message: "Name, Username, Email, and Password are required" });
+      }
+
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters" });
+      }
+
+      // Check unique username & email
+      const existingUser = await storage.getUserByUsername(username.trim());
+      if (existingUser) {
+        return res.status(400).json({ message: "A user with this username already exists" });
+      }
+
+      const existingEmail = await storage.getUserByEmail(email.trim().toLowerCase());
+      if (existingEmail) {
+        return res.status(400).json({ message: "A user with this email already exists" });
+      }
+
+      // Hash password securely with bcrypt
+      const hashedPassword = await hashPassword(password);
+
+      const newStaff = await storage.createStaffUser({
+        name: name.trim(),
+        username: username.trim(),
+        email: email.trim().toLowerCase(),
+        password: hashedPassword,
+        phone: phone ? phone.trim() : null,
+        role: role === 'super_admin' ? 'super_admin' : 'admin',
+        permissions: Array.isArray(permissions) ? permissions : [],
+        isActive: true,
+      });
+
+      await logAdminActivity(req, 'create', 'staff', newStaff.id, {
+        name: newStaff.name,
+        username: newStaff.username,
+        role: newStaff.role,
+        permissionsCount: Array.isArray(permissions) ? permissions.length : 0,
+      });
+
+      const { password: _, ...sanitized } = newStaff;
+      res.status(201).json({
+        message: "Staff member created successfully",
+        staff: sanitized,
+      });
+    } catch (error) {
+      console.error("Error creating staff:", error);
+      res.status(500).json({ message: "Failed to create staff member" });
+    }
+  });
+
+  // Update staff user permissions and details
+  app.put("/api/admin/staff/:id", authenticateUser, requireSuperAdmin, async (req, res) => {
+    try {
+      const staffId = parseInt(req.params.id);
+      if (isNaN(staffId)) {
+        return res.status(400).json({ message: "Invalid staff ID" });
+      }
+
+      const existing = await storage.getUser(staffId);
+      if (!existing) {
+        return res.status(404).json({ message: "Staff user not found" });
+      }
+
+      const { name, email, phone, permissions, role, isActive } = req.body;
+
+      // Protect Super Admin from being altered by non-super users or converted to normal admin unintentionally
+      const updateData: Partial<any> = {};
+      if (name) updateData.name = name.trim();
+      if (phone !== undefined) updateData.phone = phone ? phone.trim() : null;
+      if (email) updateData.email = email.trim().toLowerCase();
+      if (Array.isArray(permissions)) updateData.permissions = permissions;
+      if (role && (role === 'admin' || role === 'super_admin')) updateData.role = role;
+      if (isActive !== undefined) updateData.isActive = Boolean(isActive);
+
+      const updated = await storage.updateStaffUser(staffId, updateData);
+      if (!updated) {
+        return res.status(500).json({ message: "Failed to update staff member" });
+      }
+
+      await logAdminActivity(req, 'update', 'staff', staffId, {
+        name: updated.name,
+        role: updated.role,
+        updatedFields: Object.keys(updateData),
+      });
+
+      const { password: _, ...sanitized } = updated;
+      res.json({
+        message: "Staff member updated successfully",
+        staff: sanitized,
+      });
+    } catch (error) {
+      console.error("Error updating staff:", error);
+      res.status(500).json({ message: "Failed to update staff member" });
+    }
+  });
+
+  // Toggle staff user active/disabled status
+  app.patch("/api/admin/staff/:id/status", authenticateUser, requireSuperAdmin, async (req, res) => {
+    try {
+      const staffId = parseInt(req.params.id);
+      const { isActive } = req.body;
+
+      if (isNaN(staffId) || typeof isActive !== 'boolean') {
+        return res.status(400).json({ message: "Invalid parameters" });
+      }
+
+      const target = await storage.getUser(staffId);
+      if (!target) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Never disable the primary super admin
+      if (target.username === 'isk_conjuhuadmin') {
+        return res.status(400).json({ message: "Cannot disable the primary Super Admin account" });
+      }
+
+      const updated = await storage.toggleUserStatus(staffId, isActive);
+
+      await logAdminActivity(req, isActive ? 'enable' : 'disable', 'staff', staffId, {
+        username: target.username,
+        status: isActive ? 'active' : 'disabled',
+      });
+
+      res.json({
+        message: `Staff account ${isActive ? 'activated' : 'disabled'} successfully`,
+        staff: { id: updated?.id, isActive: updated?.isActive },
+      });
+    } catch (error) {
+      console.error("Error updating staff status:", error);
+      res.status(500).json({ message: "Failed to update staff status" });
+    }
+  });
+
+  // Reset staff password
+  app.post("/api/admin/staff/:id/reset-password", authenticateUser, requireSuperAdmin, async (req, res) => {
+    try {
+      const staffId = parseInt(req.params.id);
+      const { newPassword } = req.body;
+
+      if (isNaN(staffId) || !newPassword || newPassword.length < 6) {
+        return res.status(400).json({ message: "New password must be at least 6 characters long" });
+      }
+
+      const target = await storage.getUser(staffId);
+      if (!target) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const hashedPassword = await hashPassword(newPassword);
+      await storage.resetUserPassword(staffId, hashedPassword);
+
+      await logAdminActivity(req, 'reset_password', 'staff', staffId, {
+        username: target.username,
+      });
+
+      res.json({ message: `Password for ${target.name} reset successfully` });
+    } catch (error) {
+      console.error("Error resetting staff password:", error);
+      res.status(500).json({ message: "Failed to reset password" });
+    }
+  });
+
+  // Security Audit Logs endpoint
+  app.get("/api/admin/audit-logs", authenticateUser, requirePermission('audit_logs.view'), async (req, res) => {
+    try {
+      const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
+      const offset = parseInt(req.query.offset as string) || 0;
+      const section = req.query.section ? String(req.query.section) : undefined;
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+
+      const [logs, total] = await Promise.all([
+        storage.getAuditLogs(limit, offset, section, userId),
+        storage.getAuditLogsCount(section, userId),
+      ]);
+
+      res.json({ logs, total, limit, offset });
+    } catch (error) {
+      console.error("Error fetching audit logs:", error);
+      res.status(500).json({ message: "Failed to fetch audit logs" });
+    }
   });
 
   app.get("/api/user/profile", isAuthenticated, async (req, res) => {
@@ -1905,6 +2266,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email,
         phone,
         address,
+        pin,
+        panCard,
         amount,
         message,
         categoryId,
@@ -1919,6 +2282,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({
           success: false,
           message: "Missing required fields: name, email, phone, and amount are required"
+        });
+      }
+
+      // Check mandatory PAN for amounts >= 50000
+      if (parseFloat(amount) >= 50000 && !panCard?.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "PAN Card is mandatory for donations of ₹50,000 or more as per Section 133 / 80G."
         });
       }
 
@@ -1941,7 +2312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const payuParams = {
         key: process.env.PAYU_MERCHANT_KEY,
         txnid: txnid,
-        amount: amount.toString(),
+        amount: parseFloat(amount).toFixed(2),
         productinfo: isCustomAmount ? "Custom Donation" : (cardId ? "Donation Card" : "Event Donation"),
         firstname: name.split(' ')[0],
         lastname: name.split(' ').slice(1).join(' ') || '',
@@ -1951,21 +2322,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         city: '',
         state: '',
         country: 'India',
-        zipcode: '',
+        zipcode: pin || '',
         udf1: categoryId?.toString() || '',
         udf2: cardId?.toString() || '',
         udf3: eventId?.toString() || '',
         udf4: eventCardId?.toString() || '',
         udf5: isCustomAmount ? 'true' : 'false',
-        surl: `https://${req.get('host')}/api/payments/success`,
-        furl: `https://${req.get('host')}/api/payments/failure`,
+        surl: `http://${req.get('host')}/api/payments/success`,
+        furl: `http://${req.get('host')}/api/payments/failure`,
         hash: ''
       };
 
       // For live environment, we need to ensure proper hash calculation
       // PayU hash format: key|txnid|amount|productinfo|firstname|email|udf1|udf2|udf3|udf4|udf5||||||SALT
-      const hashString = `${payuParams.key}|${payuParams.txnid}|${payuParams.amount}|${payuParams.productinfo}|${payuParams.firstname}|${payuParams.email}|${payuParams.udf1}|${payuParams.udf2}|${payuParams.udf3}|${payuParams.udf4}|${payuParams.udf5}||||||${process.env.PAYU_MERCHANT_SALT}`;
+      const hashString = `${payuParams.key}|${payuParams.txnid}|${parseFloat(payuParams.amount).toFixed(2)}|${payuParams.productinfo}|${payuParams.firstname}|${payuParams.email}|${payuParams.udf1 || ''}|${payuParams.udf2 || ''}|${payuParams.udf3 || ''}|${payuParams.udf4 || ''}|${payuParams.udf5 || ''}||||||${process.env.PAYU_MERCHANT_SALT}`;
+      console.log('Hash String:', hashString);
       payuParams.hash = crypto.createHash('sha512').update(hashString).digest('hex');
+      console.log('Generated Hash:', payuParams.hash);      
       
       console.log('PayU Payment Request:', {
         environment: 'LIVE',
@@ -1975,12 +2348,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hashGenerated: true
       });
 
+      // Format combined address if pin is provided
+      const finalAddress = pin && !address?.includes(pin) ? (address ? `${address}, PIN: ${pin}` : `PIN: ${pin}`) : (address || '');
+
       // Store donation details in database with pending status
       const donationData = {
         name,
         email,
         phone,
-        address: address || '',
+        address: finalAddress,
+        panCard: panCard ? panCard.toUpperCase().trim() : null,
         amount: parseInt(amount),
         message: message || '',
         paymentId: txnid,
@@ -2071,7 +2448,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/donation/:txnid", async (req, res) => {
     try {
       const { txnid } = req.params;
-      const donation = await storage.getDonationByPaymentId(txnid);
+      let donation = await storage.getDonationByPaymentId(txnid);
+      
+      if (!donation && !isNaN(Number(txnid))) {
+        donation = await storage.getDonation(Number(txnid));
+      }
+
+      if (!donation) {
+        const allDonations = await storage.getDonations();
+        donation = allDonations.find(d => 
+          d.paymentId === txnid || 
+          d.invoiceNumber === txnid ||
+          (d.paymentGatewayResponse && d.paymentGatewayResponse.includes(txnid))
+        );
+
+        // If still not found by exact txnid, fallback to the latest completed donation
+        if (!donation && allDonations.length > 0) {
+          const sorted = [...allDonations].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          donation = sorted.find(d => d.status === 'completed' || d.status === 'success') || sorted[0];
+        }
+      }
       
       if (!donation) {
         return res.status(404).json({ message: "Donation not found" });

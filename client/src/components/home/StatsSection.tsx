@@ -32,9 +32,9 @@ const StatBox: React.FC<StatBoxProps> = ({ value, suffix, label }) => {
 
   return (
     <div className="stat-box">
-      <h1 className="stat-value" style={{ fontSize: '50px' }}>
+      <h3 className="stat-value">
         {count} {suffix}
-      </h1>
+      </h3>
       <p className="stat-label">{label}</p>
     </div>
   );

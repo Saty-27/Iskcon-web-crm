@@ -6,15 +6,34 @@ import { createDefaultAdmin } from "./createDefaultAdmin";
 import { storage } from "./storage";
 import paymentRoutes from "./routes/payment";
 import receiptRoutes from "./routes/receipt";
+import chatRoutes from "./routes/chat";
 import { validatePaymentConfig } from "./paymentConfig";
 import { initializeStatsAndSchedules } from "./initializeData";
 import { initializeBlogData } from "./initializeBlogData";
+import { initializeChatDatabase } from "./initChatDb";
+import { initializeRbacDatabase } from "./initRbacDb";
+import { setupChatWebSocket } from "./chatSocket";
+
+import compression from 'compression';
 
 const app = express();
+
+// Enable Gzip/Deflate compression for all responses
+app.use(compression({
+  level: 6,
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) return false;
+    return compression.filter(req, res);
+  }
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use('/api/payments', paymentRoutes);
 app.use('/api/receipts', receiptRoutes);
+app.use('/api/receipt', receiptRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -68,9 +87,16 @@ app.use((req, res, next) => {
   // Initialize blog data
   await initializeBlogData();
   
-  // Admin user creation is handled by createDefaultAdmin() function above
+  // Initialize chat database and indexes
+  await initializeChatDatabase();
+  
+  // Initialize RBAC database permissions, audit logs, and Super Admin
+  await initializeRbacDatabase();
   
   const server = await registerRoutes(app);
+
+  // Setup real-time Chat WebSocket server attached to HTTP server
+  setupChatWebSocket(server);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

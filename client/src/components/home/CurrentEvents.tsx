@@ -11,6 +11,7 @@ const CurrentEvents = () => {
   
   const { data: events = [], isLoading } = useQuery<Event[]>({
     queryKey: ['/api/events'],
+    staleTime: 5 * 60 * 1000,
   });
 
   const handleDonateClick = (eventId: number) => {
@@ -70,6 +71,8 @@ const CurrentEvents = () => {
                   src={event.imageUrl} 
                   alt={event.title} 
                   className="event-image"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
 

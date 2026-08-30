@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import OfficialDonationReceipt from '@/components/donation/OfficialDonationReceipt';
 
 interface PaymentDetails {
   txnid: string;
@@ -68,44 +69,33 @@ const ThankYou = () => {
 
   const handleDownloadReceipt = async () => {
     if (!paymentDetails?.txnid) return;
-    
     setIsDownloading(true);
     try {
-      // First, get the donation ID from the payment ID
-      const donationResponse = await fetch(`/api/donations/by-payment-id/${paymentDetails.txnid}`);
-      if (!donationResponse.ok) {
-        throw new Error('Failed to find donation record');
+      const url = `/api/receipt/download/${encodeURIComponent(paymentDetails.txnid)}?txnid=${encodeURIComponent(paymentDetails.txnid)}`;
+      const response = await fetch(url);
+      if (response.ok) {
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `Donation_Receipt_${paymentDetails.txnid || 'ISKCON'}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+
+        toast({
+          title: "Receipt Downloaded",
+          description: "Your official A4 donation receipt has been downloaded successfully.",
+          variant: "default",
+        });
+      } else {
+        window.open(url, '_blank');
       }
-      
-      const donation = await donationResponse.json();
-      
-      // Then download the receipt using the donation ID
-      const response = await fetch(`/api/receipt/download/${donation.id}`);
-      if (!response.ok) {
-        throw new Error('Failed to download receipt');
-      }
-      
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `ISKCON_Receipt_${donation.id}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      toast({
-        title: "Receipt Downloaded",
-        description: "Your donation receipt has been downloaded successfully.",
-        variant: "default",
-      });
     } catch (error) {
-      toast({
-        title: "Download Failed",
-        description: "Failed to download receipt. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Download error:', error);
+      const url = `/api/receipt/download/${encodeURIComponent(paymentDetails.txnid)}?txnid=${encodeURIComponent(paymentDetails.txnid)}`;
+      window.open(url, '_blank');
     } finally {
       setIsDownloading(false);
     }
@@ -221,30 +211,42 @@ const ThankYou = () => {
             </div>
           </div>
 
-          {/* Receipt Information */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <Receipt className="w-5 h-5 text-blue-600 mt-0.5" />
-              <div className="flex-1">
-                <h4 className="font-semibold text-blue-800">Receipt & Tax Benefits</h4>
-                <p className="text-blue-700 text-sm mt-1 mb-3">
-                  Your donation receipt will be sent to your WhatsApp and email within 5 minutes. 
-                  This donation is eligible for tax deduction under Section 80G of the Income Tax Act.
-                </p>
-                
-                {/* Receipt Action Buttons */}
-                <div className="flex flex-wrap gap-2">
-                  <Button 
-                    onClick={handlePrint}
-                    size="sm"
-                    variant="outline"
-                  >
-                    <Printer className="w-4 h-4 mr-1" />
-                    Print Page
-                  </Button>
-                </div>
-              </div>
-            </div>
+          {/* Official Donation Receipt */}
+          <div className="pt-2">
+            <OfficialDonationReceipt
+              donation={{
+                name: paymentDetails.firstname,
+                amount: Number(paymentDetails.amount),
+                email: paymentDetails.email,
+                paymentId: paymentDetails.txnid,
+                status: paymentDetails.status,
+                createdAt: new Date(),
+              }}
+              purpose={paymentDetails.categoryName || paymentDetails.purpose || 'General Donation / Seva'}
+              paymentMode="Online / UPI"
+            />
+          </div>
+
+          {/* Receipt Action Buttons */}
+          <div className="flex flex-wrap justify-center gap-3 pt-3">
+            <Button 
+              onClick={handleDownloadReceipt}
+              disabled={isDownloading}
+              size="lg"
+              className="bg-orange-600 hover:bg-orange-700 text-white font-semibold shadow-md py-6 px-6 rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              {isDownloading ? 'Generating PDF...' : 'Download Receipt PDF'}
+            </Button>
+            <Button 
+              onClick={handlePrint}
+              size="lg"
+              variant="outline"
+              className="border-2 border-orange-500 text-orange-700 bg-white hover:bg-orange-50 font-semibold shadow-sm py-6 px-6 rounded-xl hover:shadow transition-all transform hover:-translate-y-0.5"
+            >
+              <Printer className="w-5 h-5 mr-2 text-orange-600" />
+              Print Receipt
+            </Button>
           </div>
 
           {/* Thank You Message */}

@@ -59,6 +59,8 @@ const PaymentModal = ({
     email: '',
     phone: '',
     address: '',
+    pin: '',
+    panCard: '',
     amount: customAmount || donationCard?.amount || eventDonationCard?.amount || 0,
     message: ''
   });
@@ -127,6 +129,14 @@ const PaymentModal = ({
       });
       return false;
     }
+    if (formData.amount >= 50000 && !formData.panCard?.trim()) {
+      toast({
+        title: "PAN Card Required",
+        description: "PAN Card is mandatory for donations of ₹50,000 or more as per Section 133 / 80G tax rules.",
+        variant: "destructive"
+      });
+      return false;
+    }
     return true;
   };
 
@@ -141,6 +151,8 @@ const PaymentModal = ({
         email: formData.email,
         phone: formData.phone,
         address: formData.address,
+        pin: formData.pin,
+        panCard: formData.panCard ? formData.panCard.toUpperCase().trim() : '',
         amount: formData.amount,
         message: formData.message,
         categoryId: donationCard?.categoryId || donationCategory?.id,
@@ -300,10 +312,44 @@ const PaymentModal = ({
                 type="text"
                 value={formData.address}
                 onChange={(e) => handleInputChange('address', e.target.value)}
-                placeholder="Enter your address (optional)"
+                placeholder="Enter your address"
                 className="mt-1"
               />
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="pin">PIN Code</Label>
+                <Input
+                  id="pin"
+                  type="text"
+                  value={formData.pin}
+                  onChange={(e) => handleInputChange('pin', e.target.value)}
+                  placeholder="e.g. 400049"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="panCard">
+                  PAN Card {formData.amount >= 50000 ? <span className="text-red-500 font-bold">*</span> : '(Optional)'}
+                </Label>
+                <Input
+                  id="panCard"
+                  type="text"
+                  value={formData.panCard}
+                  onChange={(e) => handleInputChange('panCard', e.target.value.toUpperCase())}
+                  placeholder="ABCDE1234F"
+                  className={`mt-1 font-mono uppercase ${formData.amount >= 50000 && !formData.panCard ? 'border-red-400 bg-red-50/20' : ''}`}
+                />
+              </div>
+            </div>
+
+            {formData.amount >= 50000 && (
+              <div className="bg-amber-50 border border-amber-300 rounded p-2.5 text-xs text-amber-900 leading-relaxed">
+                ℹ️ <strong>PAN is mandatory</strong> for donations of ₹50,000 or more as per Section 133 / 80G of the Income Tax Act.
+              </div>
+            )}
 
             {customAmount && (
               <div>

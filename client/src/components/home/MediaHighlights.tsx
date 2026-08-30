@@ -2,20 +2,23 @@ import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Gallery, Video } from '@shared/schema';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { X } from 'lucide-react';
-import ReactPlayer from 'react-player';
+
+const ReactPlayer = lazy(() => import('react-player'));
 
 const MediaHighlights = () => {
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   
   const { data: galleryItems = [], isLoading: isLoadingGallery } = useQuery<Gallery[]>({
     queryKey: ['/api/gallery'],
+    staleTime: 5 * 60 * 1000,
   });
   
   const { data: videos = [], isLoading: isLoadingVideos } = useQuery<Video[]>({
     queryKey: ['/api/videos'],
+    staleTime: 5 * 60 * 1000,
   });
   
   const isLoading = isLoadingGallery || isLoadingVideos;
@@ -98,15 +101,14 @@ const MediaHighlights = () => {
                       src={item.imageUrl} 
                       alt={item.title} 
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                      loading="eager"
+                      loading="lazy"
+                      decoding="async"
                       onLoad={(e) => {
                         const target = e.target as HTMLImageElement;
-                        console.log('Image loaded successfully:', item.imageUrl);
                         target.style.display = 'block';
                       }}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        console.error('Image failed to load:', item.imageUrl);
                         target.style.display = 'none';
                         if (!target.parentElement?.querySelector('.fallback-text')) {
                           const fallback = document.createElement('div');
@@ -146,15 +148,14 @@ const MediaHighlights = () => {
                       src={video.thumbnailUrl} 
                       alt={video.title} 
                       className="w-full h-full object-cover"
-                      loading="eager"
+                      loading="lazy"
+                      decoding="async"
                       onLoad={(e) => {
                         const target = e.target as HTMLImageElement;
-                        console.log('Video thumbnail loaded successfully:', video.thumbnailUrl);
                         target.style.display = 'block';
                       }}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        console.error('Video thumbnail failed to load:', video.thumbnailUrl);
                         target.style.display = 'none';
                         if (!target.parentElement?.querySelector('.fallback-text')) {
                           const fallback = document.createElement('div');
@@ -168,6 +169,7 @@ const MediaHighlights = () => {
                       <button 
                         onClick={() => playVideo(video)} 
                         className="w-16 h-16 bg-white bg-opacity-80 rounded-full flex items-center justify-center transition-transform hover:scale-110 shadow-lg"
+                        aria-label={`Play ${video.title}`}
                       >
                         <i className="ri-play-fill text-3xl text-primary"></i>
                       </button>
@@ -195,22 +197,24 @@ const MediaHighlights = () => {
             </DialogClose>
           </DialogHeader>
           {selectedVideo && (
-            <div className="aspect-video w-full">
-              <ReactPlayer 
-                url={selectedVideo.youtubeUrl} 
-                width="100%"
-                height="100%"
-                controls
-                playing
-                config={{
-                  youtube: {
-                    playerVars: {
-                      showinfo: 1,
-                      modestbranding: 1
+            <div className="aspect-video w-full flex items-center justify-center">
+              <Suspense fallback={<div className="text-white text-sm">Loading video player...</div>}>
+                <ReactPlayer 
+                  url={selectedVideo.youtubeUrl} 
+                  width="100%"
+                  height="100%"
+                  controls
+                  playing
+                  config={{
+                    youtube: {
+                      playerVars: {
+                        showinfo: 1,
+                        modestbranding: 1
+                      }
                     }
-                  }
-                }}
-              />
+                  }}
+                />
+              </Suspense>
             </div>
           )}
         </DialogContent>

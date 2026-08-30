@@ -17,7 +17,7 @@ const Home = () => {
   return (
     <>
       <Helmet>
-        <title>ISKCON Juhu - Spiritual Center and Temple</title>
+        <title>ISKCON Juhu - Sri Sri Radha Rasabihari Temple</title>
         <meta name="description" content="Experience spiritual bliss at ISKCON Juhu. Join us for divine celebrations, donate for noble causes, and connect with a vibrant spiritual community." />
         <meta property="og:title" content="ISKCON Juhu - Spiritual Center and Temple" />
         <meta property="og:description" content="Experience spiritual bliss at ISKCON Juhu. Join us for divine celebrations, donate for noble causes, and connect with a vibrant spiritual community." />

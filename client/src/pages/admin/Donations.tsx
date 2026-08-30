@@ -97,22 +97,24 @@ const DonationsPage = () => {
   const failedDonations = donations.filter(d => d.status === 'failed');
   const totalAmount = completedDonations.reduce((sum, d) => sum + d.amount, 0);
 
-  // Filter donations based on search and filters
-  const filteredDonations = donations.filter(donation => {
-    const matchesSearch = searchQuery === "" || 
-      donation.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      donation.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      donation.phone.includes(searchQuery) ||
-      (donation.paymentId && donation.paymentId.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesStatus = statusFilter === "all" || donation.status === statusFilter;
-    
-    const matchesType = typeFilter === "all" || 
-      (typeFilter === "category" && donation.categoryName) ||
-      (typeFilter === "event" && donation.eventTitle);
-    
-    return matchesSearch && matchesStatus && matchesType;
-  });
+  // Filter donations based on search and filters, sorted newest/latest first
+  const filteredDonations = donations
+    .filter(donation => {
+      const matchesSearch = searchQuery === "" || 
+        donation.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        donation.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        donation.phone.includes(searchQuery) ||
+        (donation.paymentId && donation.paymentId.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      const matchesStatus = statusFilter === "all" || donation.status === statusFilter;
+      
+      const matchesType = typeFilter === "all" || 
+        (typeFilter === "category" && donation.categoryName) ||
+        (typeFilter === "event" && donation.eventTitle);
+      
+      return matchesSearch && matchesStatus && matchesType;
+    })
+    .sort((a, b) => b.id - a.id);
 
   const handleViewDonation = (donation: Donation) => {
     setSelectedDonation(donation);

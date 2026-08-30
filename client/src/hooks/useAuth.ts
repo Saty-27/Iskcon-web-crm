@@ -2,26 +2,43 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, setAuthToken, removeAuthToken } from '@/lib/queryClient';
 
-interface User {
+export interface User {
   id: number;
   name: string;
   email: string;
   username: string;
-  role: string;
+  phone?: string | null;
+  address?: string | null;
+  role: 'super_admin' | 'admin' | 'user' | string;
+  permissions?: string[] | null;
   isActive: boolean;
 }
 
-interface LoginCredentials {
-  username: string;
-  password: string;
+export interface LoginCredentials {
+  email?: string;
+  username?: string;
+  password?: string;
 }
 
-interface RegisterData {
+export interface RegisterData {
   name: string;
   email: string;
   username: string;
-  password: string;
+  password?: string;
+  phone?: string;
+  address?: string;
   role?: string;
+}
+
+export class AuthApiError extends Error {
+  notRegistered?: boolean;
+  email?: string;
+  constructor(message: string, notRegistered?: boolean, email?: string) {
+    super(message);
+    this.name = 'AuthApiError';
+    this.notRegistered = notRegistered;
+    this.email = email;
+  }
 }
 
 const useAuth = () => {
@@ -31,9 +48,10 @@ const useAuth = () => {
     queryKey: ['/api/auth/me'],
     retry: false,
     refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
     queryFn: async () => {
       const token = localStorage.getItem('authToken');
-      console.log('Auth query - token available:', !!token);
       
       const headers: Record<string, string> = {};
       if (token) {
@@ -65,7 +83,7 @@ const useAuth = () => {
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Login failed');
+        throw new AuthApiError(error.message || 'Login failed', error.notRegistered, error.email);
       }
       return response.json();
     },
@@ -96,12 +114,16 @@ const useAuth = () => {
       return response.json();
     },
     onSuccess: async (data) => {
+      // Store JWT token on registration
+      if (data.token) {
+        setAuthToken(data.token);
+      }
       // Set the user data immediately
       if (data.user) {
         queryClient.setQueryData(['/api/auth/me'], data.user);
       }
-      // Also invalidate to ensure fresh data on next fetch
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      // Force immediate refetch to ensure auth state is synced
+      await queryClient.refetchQueries({ queryKey: ['/api/auth/me'] });
     }
   });
 
@@ -126,10 +148,25 @@ const useAuth = () => {
 
   // Calculate authentication state directly from user data
   const isAuthenticated = !!user && !error && !isLoading;
-  
-  useEffect(() => {
-    console.log('Auth state update:', { user: !!user, error: !!error, isLoading, isAuthenticated });
-  }, [user, error, isLoading, isAuthenticated]);
+  const isSuperAdmin = user?.role === 'super_admin';
+  const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
+  const permissions: string[] = isSuperAdmin ? ['*'] : (user?.permissions || []);
+
+  const hasPermission = (permissionKey: string): boolean => {
+    if (!user) return false;
+    if (user.role === 'super_admin') return true;
+    if (user.role !== 'admin') return false;
+
+    const userPerms = user.permissions || [];
+    if (userPerms.includes('*')) return true;
+    if (userPerms.includes(permissionKey)) return true;
+
+    // Check section wildcard
+    const section = permissionKey.split('.')[0];
+    if (userPerms.includes(`${section}.*`)) return true;
+
+    return false;
+  };
 
   const login = (credentials: LoginCredentials) => {
     return loginMutation.mutateAsync(credentials);
@@ -146,6 +183,10 @@ const useAuth = () => {
   return {
     user: user as User | undefined,
     isAuthenticated,
+    isSuperAdmin,
+    isAdmin,
+    permissions,
+    hasPermission,
     isLoading,
     login,
     register,

@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 const Testimonials = () => {
   const { data: testimonials = [], isLoading } = useQuery<Testimonial[]>({
     queryKey: ['/api/testimonials'],
+    staleTime: 5 * 60 * 1000,
   });
   
   if (isLoading) {
@@ -62,6 +63,8 @@ const Testimonials = () => {
                     src={testimonial.imageUrl || "https://via.placeholder.com/100?text=N/A"} 
                     alt={testimonial.name} 
                     className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div>
