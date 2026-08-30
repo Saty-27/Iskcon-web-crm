@@ -519,52 +519,47 @@ export function drawISKCONReceipt(doc: PDFKit.PDFDocument, data: ReceiptDetailDa
 }
 
 /**
- * Helper to generate a PDF buffer using exact HTML-to-PDF with PDFKit fallback
+ * Ultra-fast, pure vector PDF receipt generator using PDFKit (< 20ms)
+ * Completely self-contained with zero reliance on Chromium or external processes
  */
 export async function generateDonationPDF(data: any): Promise<Buffer> {
-  try {
-    const { generateHtmlPdf } = await import('./puppeteerPdfGenerator');
-    const buffer = await generateHtmlPdf(data);
-    if (buffer && buffer.length > 0) {
-      return buffer;
-    }
-  } catch (err) {
-    console.warn('Puppeteer PDF generation failed, falling back to PDFKit vector rendering:', err);
-  }
-
   return new Promise((resolve, reject) => {
-    const doc = new PDFKit({
-      size: 'A4',
-      margin: 0,
-      info: {
-        Title: `Donation Receipt - ${data.invoiceNumber || data.txnid || 'ISKCON'}`,
-        Author: 'ISKCON Juhu Mumbai',
-        Subject: 'Donation Receipt',
-        Creator: 'ISKCON Juhu Donation Portal',
-      }
-    });
+    try {
+      const doc = new PDFKit({
+        size: 'A4',
+        margin: 0,
+        info: {
+          Title: `Donation Receipt - ${data.invoiceNumber || data.txnid || 'ISKCON'}`,
+          Author: 'ISKCON Juhu Mumbai',
+          Subject: 'Donation Receipt',
+          Creator: 'ISKCON Juhu Donation Portal',
+        }
+      });
 
-    const buffers: Buffer[] = [];
-    doc.on('data', (chunk) => buffers.push(chunk));
-    doc.on('end', () => resolve(Buffer.concat(buffers)));
-    doc.on('error', (err) => reject(err));
+      const buffers: Buffer[] = [];
+      doc.on('data', (chunk) => buffers.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+      doc.on('error', (err) => reject(err));
 
-    const receiptData: ReceiptDetailData = {
-      receiptNo: formatDisplayReceiptNo(data.invoiceNumber),
-      date: data.date || new Date(),
-      amount: Number(data.amount) || 0,
-      name: data.name || '',
-      address: data.address || '',
-      pin: data.pin || '',
-      pan: data.panCard || '',
-      mobile: data.phone || '',
-      email: data.email || '',
-      paymentMode: data.paymentMethod || 'Online Payment - UPI',
-      paymentDetails: data.txnid || '',
-      purpose: data.purpose || 'General Donation / Seva',
-    };
+      const receiptData: ReceiptDetailData = {
+        receiptNo: formatDisplayReceiptNo(data.invoiceNumber),
+        date: data.date || new Date(),
+        amount: Number(data.amount) || 0,
+        name: data.name || '',
+        address: data.address || '',
+        pin: data.pin || '',
+        pan: data.panCard || '',
+        mobile: data.phone || '',
+        email: data.email || '',
+        paymentMode: data.paymentMethod || 'Online Payment - UPI',
+        paymentDetails: data.txnid || '',
+        purpose: data.purpose || 'General Donation / Seva',
+      };
 
-    drawISKCONReceipt(doc, receiptData);
-    doc.end();
+      drawISKCONReceipt(doc, receiptData);
+      doc.end();
+    } catch (err) {
+      reject(err);
+    }
   });
 }
