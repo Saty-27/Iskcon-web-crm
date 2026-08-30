@@ -178,18 +178,19 @@ router.get('/download/:donationId', async (req, res) => {
       panCard: donation.panCard || ''
     };
     
-    // Generate PDF using exact HTML-to-PDF renderer with fallback
+    // Generate PDF using ultra-fast vector PDF renderer (< 50ms)
     let pdfBuffer: Buffer;
     try {
-      pdfBuffer = await generateHtmlPdf(receiptData);
-    } catch (e) {
-      console.warn('Puppeteer error, falling back to vector PDF:', e);
       pdfBuffer = await generateDonationPDF(receiptData);
+    } catch (e) {
+      console.warn('PDFKit error, trying HTML renderer fallback:', e);
+      pdfBuffer = await generateHtmlPdf(receiptData);
     }
     
-    // Set response headers
+    // Set response headers for instant browser download
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="donation_receipt_${donationId}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Content-Disposition', `attachment; filename="Donation_Receipt_${invoiceNumber}.pdf"`);
     
     // Send PDF directly in response
     res.send(pdfBuffer);
