@@ -1,5 +1,5 @@
 import { pool } from "./db";
-import bcrypt from "bcryptjs";
+import { hashPassword } from "./auth/rbac";
 
 export async function initializeRbacDatabase() {
   try {
@@ -37,10 +37,9 @@ export async function initializeRbacDatabase() {
       const admin = adminCheck.rows[0];
       let newPasswordHash = admin.password;
 
-      // Hash plain password if not yet hashed with bcrypt
-      if (!admin.password.startsWith('$2a$') && !admin.password.startsWith('$2b$')) {
-        const salt = await bcrypt.genSalt(10);
-        newPasswordHash = await bcrypt.hash(admin.password, salt);
+      // Hash plain password if not yet hashed
+      if (!admin.password.startsWith('$2a$') && !admin.password.startsWith('$2b$') && !admin.password.startsWith('pbkdf2$')) {
+        newPasswordHash = await hashPassword(admin.password);
       }
 
       await pool.query(`
@@ -56,8 +55,7 @@ export async function initializeRbacDatabase() {
       console.log('✓ Super Admin account (isk_conjuhuadmin) verified and secured with role = super_admin');
     } else {
       // Create initial Super Admin if not present
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash("isk_conjuhukrishnaconsiousness", salt);
+      const hashedPassword = await hashPassword("isk_conjuhukrishnaconsiousness");
 
       await pool.query(`
         INSERT INTO users (username, password, email, name, role, permissions, is_active)

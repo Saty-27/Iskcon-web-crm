@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { storage } from '../storage';
 
 // Complete dictionary of available permissions for Super Admin to assign
@@ -216,26 +216,52 @@ export function requireSuperAdmin(req: Request, res: Response, next: NextFunctio
 }
 
 /**
- * Password Security: Hash plaintext password using bcryptjs
+ * Password Security: Hash plaintext password using bcryptjs or crypto pbkdf2
  */
 export async function hashPassword(plainPassword: string): Promise<string> {
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(plainPassword, salt);
+  try {
+    const bcryptModule = await import('bcryptjs');
+    const bcrypt = bcryptModule.default || bcryptModule;
+    const salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(plainPassword, salt);
+  } catch (err) {
+    // Zero-dependency Node.js native crypto fallback
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = crypto.pbkdf2Sync(plainPassword, salt, 1000, 64, 'sha512').toString('hex');
+    return `pbkdf2$${salt}$${hash}`;
+  }
 }
 
 /**
  * Password Security: Compare plain password with stored hash
- * Transparently supports plain legacy check for smooth transition
+ * Supports bcrypt hashes, pbkdf2 hashes, and legacy plain matches
  */
 export async function comparePassword(plainPassword: string, storedHash: string): Promise<boolean> {
   if (!storedHash || !plainPassword) return false;
 
-  // If already a bcrypt hash (starts with $2a$, $2b$, or $2y$)
+  // 1. Bcrypt hash format ($2a$, $2b$, or $2y$)
   if (storedHash.startsWith('$2a$') || storedHash.startsWith('$2b$') || storedHash.startsWith('$2y$')) {
-    return bcrypt.compare(plainPassword, storedHash);
+    try {
+      const bcryptModule = await import('bcryptjs');
+      const bcrypt = bcryptModule.default || bcryptModule;
+      return await bcrypt.compare(plainPassword, storedHash);
+    } catch (_) {
+      return false;
+    }
   }
 
-  // Graceful legacy fallback: direct string match
+  // 2. PBKDF2 hash format (pbkdf2$salt$hash)
+  if (storedHash.startsWith('pbkdf2$')) {
+    try {
+      const [, salt, hash] = storedHash.split('$');
+      const verifyHash = crypto.pbkdf2Sync(plainPassword, salt, 1000, 64, 'sha512').toString('hex');
+      return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(verifyHash, 'hex'));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // 3. Graceful legacy fallback: direct string match
   return plainPassword === storedHash;
 }
 
