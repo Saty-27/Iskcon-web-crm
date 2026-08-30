@@ -18,11 +18,28 @@ const HeroSlider = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  const { data: rawBanners = [] } = useQuery<Banner[]>({
+  const { data: rawBanners = [], isLoading } = useQuery<Banner[]>({
     queryKey: ['/api/banners'],
-    staleTime: 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    initialData: () => {
+      try {
+        const cached = localStorage.getItem('iskcon_cached_banners');
+        return cached ? JSON.parse(cached) : undefined;
+      } catch (_) {
+        return undefined;
+      }
+    },
   });
+
+  // Keep local storage updated with latest banners
+  useEffect(() => {
+    if (rawBanners && rawBanners.length > 0) {
+      try {
+        localStorage.setItem('iskcon_cached_banners', JSON.stringify(rawBanners));
+      } catch (_) {}
+    }
+  }, [rawBanners]);
 
   // Filter banners based on user device (Desktop 1920x1080 vs Mobile 1080x1920)
   const banners = useMemo(() => {
@@ -117,8 +134,13 @@ const HeroSlider = () => {
             </div>
           )}
         </div>
+      ) : isLoading ? (
+        /* Loading skeleton: sleek dark container to prevent layout shift and avoid flashing old fallback image */
+        <div className="h-full w-full bg-gray-900 animate-pulse flex items-center justify-center">
+          <div className="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
       ) : (
-        /* Fallback Default Hero (only shown if no banners exist in DB) */
+        /* Fallback Default Hero (only shown if no banners exist in DB after fetch) */
         <div className="h-full w-full relative">
           <Link href="/donate" className="block w-full h-full cursor-pointer select-none">
             <img 
