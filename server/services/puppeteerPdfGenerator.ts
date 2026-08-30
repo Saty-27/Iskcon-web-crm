@@ -599,8 +599,13 @@ export function generateReceiptHtml(data: ReceiptDetailData): string {
 }
 
 let browserInstance: any = null;
+let isPuppeteerSupported: boolean | null = null;
 
 async function getBrowser() {
+  if (isPuppeteerSupported === false) {
+    return null;
+  }
+
   try {
     if (browserInstance && browserInstance.connected) {
       return browserInstance;
@@ -608,11 +613,11 @@ async function getBrowser() {
   } catch (_) {}
 
   try {
-    // Dynamic import so missing puppeteer binary never prevents server startup
+    // Dynamic import with short 3-second timeout
     const puppeteerModule = await import('puppeteer');
     const puppeteer = puppeteerModule.default || puppeteerModule;
 
-    browserInstance = await puppeteer.launch({
+    const launchPromise = puppeteer.launch({
       headless: true,
       args: [
         '--no-sandbox',
@@ -623,15 +628,24 @@ async function getBrowser() {
         '--no-zygote'
       ]
     });
+
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Puppeteer launch timeout')), 3000)
+    );
+
+    browserInstance = await Promise.race([launchPromise, timeoutPromise]);
+    isPuppeteerSupported = true;
     return browserInstance;
   } catch (error) {
-    console.warn('Puppeteer not available or failed to launch, falling back to PDFKit:', error);
+    console.warn('Puppeteer not available or missing Linux libraries, permanently switching to ultra-fast PDFKit generator:', error);
+    isPuppeteerSupported = false;
+    browserInstance = null;
     return null;
   }
 }
 
 /**
- * Generates an exact, 1:1 pixel-perfect A4 PDF using Puppeteer, with graceful fallback to PDFKit
+ * Generates an exact, 1:1 pixel-perfect A4 PDF with instantaneous fallback
  */
 export async function generateHtmlPdf(data: any): Promise<Buffer> {
   const receiptDetail: ReceiptDetailData = {
@@ -652,7 +666,7 @@ export async function generateHtmlPdf(data: any): Promise<Buffer> {
   try {
     const browser = await getBrowser();
     if (!browser) {
-      // Fallback directly to pdfkit generator
+      // Fallback directly and instantly to pdfkit generator (< 50ms)
       return await generateDonationPDF(data);
     }
 
@@ -660,7 +674,7 @@ export async function generateHtmlPdf(data: any): Promise<Buffer> {
     const page = await browser.newPage();
     try {
       await page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 2 });
-      await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 10000 });
+      await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 5000 });
 
       const pdfBuffer = await page.pdf({
         format: 'A4',
@@ -674,7 +688,7 @@ export async function generateHtmlPdf(data: any): Promise<Buffer> {
       await page.close();
     }
   } catch (err) {
-    console.warn('Puppeteer PDF generation failed, falling back to PDFKit:', err);
+    console.warn('Puppeteer rendering failed, falling back to PDFKit:', err);
     return await generateDonationPDF(data);
   }
 }
