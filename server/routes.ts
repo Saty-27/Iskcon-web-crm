@@ -243,9 +243,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/uploads/social-icons', express.static(socialIconsDir, staticUploadOptions));
   app.use('/uploads', express.static(uploadsDir, staticUploadOptions));
 
-  // Generic upload endpoint - handles single file uploads with clear error responses
+  // Helper to extract the uploaded file regardless of whether upload.single or upload.any was used
+  const getUploadedFile = (req: any) => {
+    if (req.file) return req.file;
+    if (Array.isArray(req.files) && req.files.length > 0) return req.files[0];
+    return null;
+  };
+
+  // Generic upload endpoint - handles any file upload gracefully
   app.post("/api/upload", (req, res) => {
-    upload.single('file')(req, res, (err: any) => {
+    upload.any()(req, res, (err: any) => {
       if (err) {
         console.error('Multer upload error:', err);
         return res.status(400).json({ 
@@ -255,12 +262,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       try {
-        if (!req.file) {
+        const uploadedFile = getUploadedFile(req);
+        if (!uploadedFile) {
           return res.status(400).json({ success: false, message: "No file uploaded" });
         }
         
-        const type = req.body.type || 'banner';
-        console.log('Processing upload for type:', type, 'file:', req.file.filename);
+        const type = req.body?.type || 'banner';
+        console.log('Processing upload for type:', type, 'file:', uploadedFile.filename);
         
         // Determine target directory and folder name
         let targetDir = bannersDir;
@@ -292,8 +300,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           folder = 'social-icons';
         }
         
-        const currentPath = req.file.path;
-        const correctFilename = req.file.filename;
+        const currentPath = uploadedFile.path;
+        const correctFilename = uploadedFile.filename;
         const correctPath = path.join(targetDir, correctFilename);
         
         // Ensure file is in target directory
@@ -302,8 +310,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         const imageUrl = `/uploads/${folder}/${correctFilename}`;
-        console.log('File uploaded successfully:', imageUrl, 'Size:', req.file.size, 'bytes');
-        res.json({ success: true, url: imageUrl });
+        console.log('File uploaded successfully:', imageUrl, 'Size:', uploadedFile.size, 'bytes');
+        res.json({ success: true, url: imageUrl, imageUrl });
         
       } catch (error) {
         console.error('Error processing upload:', error);
@@ -312,90 +320,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Banner upload endpoint (legacy)
-  app.post("/api/upload/banner", isAdmin, upload.single('image'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
+  // Banner upload endpoint
+  app.post("/api/upload/banner", isAdmin, (req, res) => {
+    upload.any()(req, res, (err: any) => {
+      if (err) {
+        return res.status(400).json({ success: false, message: err.message });
       }
-      
-      const imageUrl = `/uploads/banners/${req.file.filename}`;
-      res.json({ imageUrl });
-    } catch (error) {
-      res.status(500).json({ message: "Error uploading file", error: error instanceof Error ? error.message : String(error) });
-    }
+      const uploadedFile = getUploadedFile(req);
+      if (!uploadedFile) {
+        return res.status(400).json({ success: false, message: "No file uploaded" });
+      }
+      const imageUrl = `/uploads/banners/${uploadedFile.filename}`;
+      res.json({ success: true, imageUrl, url: imageUrl });
+    });
   });
 
   // Gallery image upload endpoint
-  const galleryUpload = multer({
-    storage: multer.diskStorage({
-      destination: function (req, file, cb) {
-        cb(null, galleryDir);
-      },
-      filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'gallery-' + uniqueSuffix + path.extname(file.originalname));
+  app.post("/api/upload/gallery", isAdmin, (req, res) => {
+    upload.any()(req, res, (err: any) => {
+      if (err) {
+        return res.status(400).json({ success: false, message: err.message });
       }
-    }),
-    limits: {
-      fileSize: 20 * 1024 * 1024 // 20MB limit
-    },
-    fileFilter: function (req, file, cb) {
-      if (file.mimetype.startsWith('image/')) {
-        cb(null, true);
-      } else {
-        cb(new Error('Only image files are allowed!'));
+      const uploadedFile = getUploadedFile(req);
+      if (!uploadedFile) {
+        return res.status(400).json({ success: false, message: "No file uploaded" });
       }
-    }
-  });
-
-  app.post("/api/upload/gallery", isAdmin, galleryUpload.single('image'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-      
-      const imageUrl = `/uploads/gallery/${req.file.filename}`;
-      res.json({ imageUrl });
-    } catch (error) {
-      res.status(500).json({ message: "Error uploading gallery image", error: error instanceof Error ? error.message : String(error) });
-    }
+      const imageUrl = `/uploads/gallery/${uploadedFile.filename}`;
+      res.json({ success: true, imageUrl, url: imageUrl });
+    });
   });
 
   // Video thumbnail upload endpoint
-  const videoUpload = multer({
-    storage: multer.diskStorage({
-      destination: function (req, file, cb) {
-        cb(null, videosDir);
-      },
-      filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'video-' + uniqueSuffix + path.extname(file.originalname));
+  app.post("/api/upload/videos", isAdmin, (req, res) => {
+    upload.any()(req, res, (err: any) => {
+      if (err) {
+        return res.status(400).json({ success: false, message: err.message });
       }
-    }),
-    limits: {
-      fileSize: 20 * 1024 * 1024 // 20MB limit
-    },
-    fileFilter: function (req, file, cb) {
-      if (file.mimetype.startsWith('image/')) {
-        cb(null, true);
-      } else {
-        cb(new Error('Only image files are allowed!'));
+      const uploadedFile = getUploadedFile(req);
+      if (!uploadedFile) {
+        return res.status(400).json({ success: false, message: "No file uploaded" });
       }
-    }
+      const imageUrl = `/uploads/videos/${uploadedFile.filename}`;
+      res.json({ success: true, imageUrl, url: imageUrl });
+    });
   });
 
-  app.post("/api/upload/videos", isAdmin, videoUpload.single('image'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
+  // Social icon upload endpoint
+  app.post("/api/upload/social-icon", isAdmin, (req, res) => {
+    upload.any()(req, res, (err: any) => {
+      if (err) {
+        return res.status(400).json({ success: false, message: err.message });
       }
-      
-      const imageUrl = `/uploads/videos/${req.file.filename}`;
-      res.json({ imageUrl });
-    } catch (error) {
-      res.status(500).json({ message: "Error uploading video thumbnail", error: error instanceof Error ? error.message : String(error) });
-    }
+      const uploadedFile = getUploadedFile(req);
+      if (!uploadedFile) {
+        return res.status(400).json({ success: false, message: "No file uploaded" });
+      }
+      const imageUrl = `/uploads/social-icons/${uploadedFile.filename}`;
+      res.json({ success: true, imageUrl, url: imageUrl });
+    });
   });
 
   // Mount payment routes
