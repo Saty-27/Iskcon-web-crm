@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Helmet } from 'react-helmet';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
 import { DonationCategory, BankDetails } from '@shared/schema';
@@ -10,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import PaymentModal from '@/components/payment/PaymentModal';
+import SEO from '@/components/seo/SEO';
 
 
 const Donate = () => {
