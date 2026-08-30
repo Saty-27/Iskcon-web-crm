@@ -12,6 +12,7 @@ import { initializeStatsAndSchedules } from "./initializeData";
 import { initializeBlogData } from "./initializeBlogData";
 import { initializeChatDatabase } from "./initChatDb";
 import { initializeRbacDatabase } from "./initRbacDb";
+import { initializeDatabaseSchema } from "./initDbSchema";
 import { setupChatWebSocket } from "./chatSocket";
 
 const app = express();
@@ -95,6 +96,9 @@ app.use((req, res, next) => {
   // Initialize chat database and indexes
   await initializeChatDatabase();
   
+  // Auto-sync PostgreSQL database schema to ensure all columns exist
+  await initializeDatabaseSchema();
+
   // Initialize RBAC database permissions, audit logs, and Super Admin
   await initializeRbacDatabase();
   
