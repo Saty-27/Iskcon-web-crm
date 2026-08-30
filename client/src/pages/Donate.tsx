@@ -61,13 +61,16 @@ const Donate = () => {
   
   return (
     <>
-      <Helmet>
-        <title>Donate - ISKCON Juhu</title>
-        <meta name="description" content="Support ISKCON Juhu's initiatives including temple maintenance, food distribution, and spiritual education programs through your generous donations." />
-        <meta property="og:title" content="Donate - ISKCON Juhu" />
-        <meta property="og:description" content="Support ISKCON Juhu's initiatives through your generous donations. Your contributions help maintain the temple and support our spiritual and community services." />
-        <meta property="og:type" content="website" />
-      </Helmet>
+      <SEO
+        title="Online Donation & Daan Seva | 80G Tax Exemption | ISKCON Juhu Mumbai"
+        description="Donate online to ISKCON Juhu for Anna Daan (Food for Life), Gau Seva, Gita Daan, and Deity Seva. 100% secure payment with instant 80G tax-exempt receipts."
+        keywords="ISKCON Donation, Daan Seva Juhu, Anna Daan Mumbai, Gau Seva Donation, Bhagavad Gita Daan, 80G Tax Exemption Donation, ISKCON Juhu Online Donation, Hare Krishna Seva"
+        schemaType="donation"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Donate & Daan Seva', url: '/donate' },
+        ]}
+      />
       
       <Header />
       

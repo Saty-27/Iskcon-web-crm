@@ -4,6 +4,7 @@ import { Clock, Calendar, User, ArrowLeft, Share2 } from "lucide-react";
 import { type BlogPost } from "@shared/schema";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
+import SEO from "@/components/seo/SEO";
 
 const BlogPostPage = () => {
   const [match, params] = useRoute("/blog/:slug");
@@ -72,6 +73,10 @@ const BlogPostPage = () => {
   if (error || !post) {
     return (
       <>
+        <SEO 
+          title="Blog Post Not Found | ISKCON Juhu"
+          description="The requested spiritual article was not found. Explore our latest Vedic discourses and temple updates."
+        />
         <Header />
         <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center">
           <div className="text-center">
@@ -91,8 +96,35 @@ const BlogPostPage = () => {
     );
   }
 
+  const postTitle = post.seoTitle || post.title;
+  const postDesc = post.seoDescription || post.excerpt;
+  const postKeywords = post.seoKeywords || `${post.title}, ISKCON Juhu Blog, Vedic Wisdom, Bhagavad Gita, Krishna Consciousness, Hare Krishna`;
+
   return (
     <>
+      <SEO
+        title={postTitle}
+        description={postDesc}
+        keywords={postKeywords}
+        ogImage={post.imageUrl}
+        ogType="article"
+        author={post.author}
+        publishedTime={post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined}
+        modifiedTime={post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined}
+        schemaType="article"
+        schemaData={{
+          headline: post.title,
+          description: postDesc,
+          author: post.author,
+          datePublished: post.publishedAt,
+          dateModified: post.updatedAt,
+        }}
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Blog', url: '/blog' },
+          { name: post.title, url: `/blog/${post.slug}` },
+        ]}
+      />
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
         {/* Header with Breadcrumb */}

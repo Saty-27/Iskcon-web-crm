@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet';
+import SEO from '@/components/seo/SEO';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { format } from 'date-fns';
@@ -21,13 +21,15 @@ const Events = () => {
   
   return (
     <>
-      <Helmet>
-        <title>Events - ISKCON Juhu</title>
-        <meta name="description" content="Join us for divine celebrations, festivals, special events, and spiritual gatherings at ISKCON Juhu. Check our upcoming events calendar." />
-        <meta property="og:title" content="Events - ISKCON Juhu" />
-        <meta property="og:description" content="Join us for divine celebrations, festivals, special events, and spiritual gatherings at ISKCON Juhu." />
-        <meta property="og:type" content="website" />
-      </Helmet>
+      <SEO
+        title="Upcoming Festivals & Spiritual Events | Janmashtami, Ratha Yatra | ISKCON Juhu"
+        description="Join divine celebrations, Vedic festivals, Janmashtami, Radhashtami, Ratha Yatra, and Sunday feasts at ISKCON Juhu, Mumbai. View event schedules and seva sponsorship."
+        keywords="ISKCON Juhu Events, Janmashtami Juhu Mumbai, Ratha Yatra Mumbai, Temple Festivals, Gaura Purnima, Radhashtami, Sunday Feast ISKCON"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Events & Festivals', url: '/events' },
+        ]}
+      />
       
       <Header />
       

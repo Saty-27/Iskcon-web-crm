@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet';
+import SEO from '@/components/seo/SEO';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import HeroSlider from '@/components/home/HeroSlider';
@@ -16,14 +16,12 @@ import WatchLiveButton from '@/components/WatchLiveButton';
 const Home = () => {
   return (
     <>
-      <Helmet>
-        <title>ISKCON Juhu - Sri Sri Radha Rasabihari Temple</title>
-        <meta name="description" content="Experience spiritual bliss at ISKCON Juhu. Join us for divine celebrations, donate for noble causes, and connect with a vibrant spiritual community." />
-        <meta property="og:title" content="ISKCON Juhu - Spiritual Center and Temple" />
-        <meta property="og:description" content="Experience spiritual bliss at ISKCON Juhu. Join us for divine celebrations, donate for noble causes, and connect with a vibrant spiritual community." />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://pixabay.com/get/g278ecce0ba61756c6b63480792d9ebbc528c6c2ca124b41aafeaaddb98ac5ee67ef5eb602cd0eb0b27645e6f00c4c672947df6b165a52a9b8c3a5795ffb5ad85_1280.jpg" />
-      </Helmet>
+      <SEO 
+        title="ISKCON Juhu - Sri Sri Radha Rasabihari Temple | Mumbai Official Portal"
+        description="Welcome to ISKCON Juhu (Sri Sri Radha Rasabihari Temple), Hare Krishna Land, Mumbai. Experience daily live darshan, aartis, Anna Daan, Bhagavad Gita discourses, and online 80G tax-exempt donations."
+        keywords="ISKCON Juhu, ISKCON Mumbai, Sri Sri Radha Rasabihari, Hare Krishna, Hare Krishna Mahamantra, Srila Prabhupada, Daan Seva, Anna Daan, Gau Seva, Bhagavad Gita, Temple donation 80G, Janmashtami Mumbai, Darshan Timings, Juhu Temple Aarti"
+        schemaType="temple"
+      />
       
       <Header />
       

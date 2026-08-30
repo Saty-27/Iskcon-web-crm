@@ -4,7 +4,7 @@ import { useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Helmet } from 'react-helmet';
+import SEO from "@/components/seo/SEO";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { DonationCategory, DonationCard, BankDetails } from "@shared/schema";
 import Header from '@/components/layout/Header';
@@ -117,10 +117,18 @@ export default function CategoryDonation() {
 
   return (
     <>
-      <Helmet>
-        <title>{category.name} - Donate - ISKCON Juhu</title>
-        <meta name="description" content={`Support ${category.name} at ISKCON Juhu. ${category.description}`} />
-      </Helmet>
+      <SEO
+        title={`${category.name} - Online Daan Seva | 80G Tax Exemption | ISKCON Juhu`}
+        description={`Contribute to ${category.name} at ISKCON Juhu, Mumbai. ${category.description || 'Support our spiritual and charitable missions with 80G tax benefits.'}`}
+        keywords={`${category.name}, ISKCON Juhu Daan, Mumbai Temple Donation, Anna Daan, Gau Seva, 80G Tax Exemption, Hare Krishna Seva`}
+        ogImage={category.imageUrl}
+        schemaType="donation"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Donate', url: '/donate' },
+          { name: category.name, url: `/donate/category/${category.id}` },
+        ]}
+      />
       
       <Header />
       

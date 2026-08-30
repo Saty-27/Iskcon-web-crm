@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet';
+import SEO from '@/components/seo/SEO';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Gallery as GalleryItem } from '@shared/schema';
@@ -40,13 +40,15 @@ const Gallery = () => {
   
   return (
     <>
-      <Helmet>
-        <title>Gallery - ISKCON Juhu</title>
-        <meta name="description" content="Browse through a beautiful collection of images from ISKCON Juhu temple, festivals, events, and spiritual activities." />
-        <meta property="og:title" content="Gallery - ISKCON Juhu" />
-        <meta property="og:description" content="Browse through a beautiful collection of images from ISKCON Juhu temple, festivals, events, and spiritual activities." />
-        <meta property="og:type" content="website" />
-      </Helmet>
+      <SEO
+        title="Temple Darshan Photo Gallery | Sri Sri Radha Rasabihari | ISKCON Juhu"
+        description="Experience high-resolution daily darshan photos of Sri Sri Radha Rasabihari, Sri Sri Gaura Nitai, and festival celebrations at ISKCON Juhu, Mumbai."
+        keywords="ISKCON Juhu Darshan Photos, Radha Rasabihari Photos, Temple Gallery Mumbai, Hare Krishna Deity Photos, Janmashtami Darshan Images"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Photo Gallery', url: '/gallery' },
+        ]}
+      />
       
       <Header />
       

@@ -4,6 +4,7 @@ import { Clock, Calendar, User } from "lucide-react";
 import { type BlogPost } from "@shared/schema";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
+import SEO from "@/components/seo/SEO";
 
 const BlogPage = () => {
   const { data: blogPosts = [], isLoading } = useQuery<BlogPost[]>({
@@ -21,6 +22,11 @@ const BlogPage = () => {
   if (isLoading) {
     return (
       <>
+        <SEO 
+          title="Spiritual Wisdom, Bhagavad Gita Discourses & Temple Updates | ISKCON Juhu Blog"
+          description="Read inspiring spiritual wisdom, Vedic philosophy, Bhagavad Gita teachings, and temple festival updates from ISKCON Juhu, Mumbai."
+          keywords="ISKCON Juhu Blog, Bhagavad Gita, Krishna Consciousness, Vedic Philosophy, Hare Krishna Mahamantra, Spiritual Discourses, Janmashtami Updates Mumbai"
+        />
         <Header />
         <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
           {/* Header Section */}
@@ -63,6 +69,15 @@ const BlogPage = () => {
 
   return (
     <>
+      <SEO 
+        title="Spiritual Wisdom, Bhagavad Gita Discourses & Temple Updates | ISKCON Juhu Blog"
+        description="Read inspiring spiritual wisdom, Vedic philosophy, Bhagavad Gita teachings, and temple festival updates from ISKCON Juhu, Mumbai."
+        keywords="ISKCON Juhu Blog, Bhagavad Gita, Krishna Consciousness, Vedic Philosophy, Hare Krishna Mahamantra, Spiritual Discourses, Janmashtami Updates Mumbai"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Blog', url: '/blog' },
+        ]}
+      />
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
         {/* Header Section */}

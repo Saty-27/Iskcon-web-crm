@@ -1,17 +1,19 @@
-import { Helmet } from 'react-helmet';
+import SEO from '@/components/seo/SEO';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 const Contact = () => {
   return (
     <>
-      <Helmet>
-        <title>Contact Us - ISKCON Juhu</title>
-        <meta name="description" content="Get in touch with ISKCON Juhu temple. Find our location, contact details, and temple hours. Send us a message for inquiries or spiritual guidance." />
-        <meta property="og:title" content="Contact Us - ISKCON Juhu" />
-        <meta property="og:description" content="Get in touch with ISKCON Juhu temple. Find our location, contact details, and temple hours." />
-        <meta property="og:type" content="website" />
-      </Helmet>
+      <SEO
+        title="Contact & Visit Us | Temple Timings & Location Map | ISKCON Juhu Mumbai"
+        description="Visit ISKCON Juhu (Sri Sri Radha Rasabihari Temple), Hare Krishna Land, Juhu, Mumbai. Find contact details, guest house inquiries, daily darshan timings, and location map."
+        keywords="Contact ISKCON Juhu, ISKCON Mumbai Address, Juhu Temple Phone Number, Hare Krishna Land Location, ISKCON Juhu Guest House"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Contact & Location', url: '/contact' },
+        ]}
+      />
       
       <Header />
       

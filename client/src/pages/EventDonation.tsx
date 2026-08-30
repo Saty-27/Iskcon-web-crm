@@ -4,7 +4,7 @@ import { useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Helmet } from 'react-helmet';
+import SEO from "@/components/seo/SEO";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { Event, EventDonationCard, BankDetails } from "@shared/schema";
 import Header from '@/components/layout/Header';
@@ -100,10 +100,18 @@ export default function EventDonation() {
 
   return (
     <>
-      <Helmet>
-        <title>{event.title} - Donate - ISKCON Juhu</title>
-        <meta name="description" content={`Support ${event.title} at ISKCON Juhu. ${event.description}`} />
-      </Helmet>
+      <SEO
+        title={`${event.title} - Festival Seva & Donation | ISKCON Juhu`}
+        description={`Sponsor and contribute to ${event.title} at ISKCON Juhu, Mumbai. ${event.description || 'Participate in divine festival sevas with 80G tax benefits.'}`}
+        keywords={`${event.title}, ISKCON Juhu Festival, Janmashtami Seva, Mumbai Temple Festival Donation, 80G Tax Exemption`}
+        ogImage={event.imageUrl}
+        schemaType="donation"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Events & Festivals', url: '/events' },
+          { name: event.title, url: `/donate/event/${event.id}` },
+        ]}
+      />
       
       <Header />
       

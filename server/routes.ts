@@ -43,6 +43,7 @@ import {
   ALL_PERMISSIONS, 
   ADMIN_SECTIONS 
 } from "./auth/rbac";
+import { registerSeoRoutes } from "./routes/seo";
 
 // JWT secret key
 const JWT_SECRET = process.env.JWT_SECRET || "iskcon_juhu_jwt_secret";
@@ -140,6 +141,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
     next();
   });
+
+  // Register dynamic sitemap.xml, robots.txt, and AI manifests (llms.txt)
+  registerSeoRoutes(app);
 
   // Configure multer for file uploads
   const uploadsDir = path.join(process.cwd(), 'uploads');

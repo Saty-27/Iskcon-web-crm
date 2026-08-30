@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet';
+import SEO from '@/components/seo/SEO';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Video } from '@shared/schema';
@@ -25,13 +25,15 @@ const Videos = () => {
   
   return (
     <>
-      <Helmet>
-        <title>Videos - ISKCON Juhu</title>
-        <meta name="description" content="Watch spiritual discourses, temple ceremonies, kirtans, and other divine events from ISKCON Juhu Temple." />
-        <meta property="og:title" content="Videos - ISKCON Juhu" />
-        <meta property="og:description" content="Watch spiritual discourses, temple ceremonies, kirtans, and other divine events from ISKCON Juhu Temple." />
-        <meta property="og:type" content="website" />
-      </Helmet>
+      <SEO
+        title="Live Darshan, Kirtan & Spiritual Discourses | Video Library | ISKCON Juhu"
+        description="Watch inspiring kirtans, Bhagavad Gita lectures, Mangala Aarti broadcasts, and festival videos from ISKCON Juhu Temple, Mumbai."
+        keywords="ISKCON Juhu Videos, Live Darshan Mumbai, Hare Krishna Kirtan, Bhagavad Gita Lectures, Temple Aarti Video"
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Video Library', url: '/videos' },
+        ]}
+      />
       
       <Header />
       
