@@ -14,19 +14,23 @@ import { initializeChatDatabase } from "./initChatDb";
 import { initializeRbacDatabase } from "./initRbacDb";
 import { setupChatWebSocket } from "./chatSocket";
 
-import compression from 'compression';
-
 const app = express();
 
-// Enable Gzip/Deflate compression for all responses
-app.use(compression({
-  level: 6,
-  threshold: 1024,
-  filter: (req, res) => {
-    if (req.headers['x-no-compression']) return false;
-    return compression.filter(req, res);
-  }
-}));
+// Try to enable Gzip/Deflate compression if available
+try {
+  const compressionModule = await import('compression');
+  const compression = compressionModule.default || compressionModule;
+  app.use(compression({
+    level: 6,
+    threshold: 1024,
+    filter: (req: any, res: any) => {
+      if (req.headers['x-no-compression']) return false;
+      return compression.filter(req, res);
+    }
+  }));
+} catch (_) {
+  // Compression not installed; proceed without crashing
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
