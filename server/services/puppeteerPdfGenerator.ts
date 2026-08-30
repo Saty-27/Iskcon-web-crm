@@ -1,7 +1,6 @@
-import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
-import { formatPaymentMode, numberToIndianWords, formatDisplayReceiptNo, type ReceiptDetailData } from './receiptPdfGenerator';
+import { formatPaymentMode, numberToIndianWords, formatDisplayReceiptNo, type ReceiptDetailData, generateDonationPDF } from './receiptPdfGenerator';
 
 let letterheadBase64 = '';
 try {
@@ -608,22 +607,31 @@ async function getBrowser() {
     }
   } catch (_) {}
 
-  browserInstance = await puppeteer.launch({
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--no-first-run',
-      '--no-zygote'
-    ]
-  });
-  return browserInstance;
+  try {
+    // Dynamic import so missing puppeteer binary never prevents server startup
+    const puppeteerModule = await import('puppeteer');
+    const puppeteer = puppeteerModule.default || puppeteerModule;
+
+    browserInstance = await puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote'
+      ]
+    });
+    return browserInstance;
+  } catch (error) {
+    console.warn('Puppeteer not available or failed to launch, falling back to PDFKit:', error);
+    return null;
+  }
 }
 
 /**
- * Generates an exact, 1:1 pixel-perfect A4 PDF using Puppeteer
+ * Generates an exact, 1:1 pixel-perfect A4 PDF using Puppeteer, with graceful fallback to PDFKit
  */
 export async function generateHtmlPdf(data: any): Promise<Buffer> {
   const receiptDetail: ReceiptDetailData = {
@@ -641,23 +649,32 @@ export async function generateHtmlPdf(data: any): Promise<Buffer> {
     purpose: data.purpose || 'General Donation / Seva',
   };
 
-  const html = generateReceiptHtml(receiptDetail);
-
-  const browser = await getBrowser();
-  const page = await browser.newPage();
   try {
-    await page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 2 });
-    await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 10000 });
+    const browser = await getBrowser();
+    if (!browser) {
+      // Fallback directly to pdfkit generator
+      return await generateDonationPDF(data);
+    }
 
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: { top: '0px', right: '0px', bottom: '0px', left: '0px' },
-      preferCSSPageSize: true
-    });
+    const html = generateReceiptHtml(receiptDetail);
+    const page = await browser.newPage();
+    try {
+      await page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 2 });
+      await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 10000 });
 
-    return Buffer.from(pdfBuffer);
-  } finally {
-    await page.close();
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: { top: '0px', right: '0px', bottom: '0px', left: '0px' },
+        preferCSSPageSize: true
+      });
+
+      return Buffer.from(pdfBuffer);
+    } finally {
+      await page.close();
+    }
+  } catch (err) {
+    console.warn('Puppeteer PDF generation failed, falling back to PDFKit:', err);
+    return await generateDonationPDF(data);
   }
 }
