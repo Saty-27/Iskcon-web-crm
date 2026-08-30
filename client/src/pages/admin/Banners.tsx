@@ -132,21 +132,33 @@ const BannersPage = () => {
     try {
       const formData = new FormData();
       formData.append('image', file);
+      formData.append('file', file);
+      formData.append('type', 'banner');
+      
+      const token = localStorage.getItem('authToken');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
       
       const response = await fetch('/api/upload/banner', {
         method: 'POST',
+        headers,
+        credentials: 'include',
         body: formData,
       });
       
       if (!response.ok) {
-        throw new Error('Upload failed');
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || 'Upload failed');
       }
       
       const result = await response.json();
-      form.setValue('imageUrl', result.imageUrl);
+      const uploadedUrl = result.imageUrl || result.url;
+      form.setValue('imageUrl', uploadedUrl);
       toast({ title: "Success", description: "Image uploaded successfully" });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to upload image", variant: "destructive" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error?.message || "Failed to upload image", variant: "destructive" });
     } finally {
       setIsUploading(false);
     }

@@ -142,21 +142,30 @@ const GalleryPage = () => {
     try {
       const formData = new FormData();
       formData.append('image', file);
+      formData.append('file', file);
+      formData.append('type', 'gallery');
+      
+      const token = localStorage.getItem('authToken');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
       
       const response = await fetch('/api/upload/gallery', {
         method: 'POST',
-        headers: {
-          Authorization: 'Bearer ' + (localStorage.getItem('authToken') || '')
-        },
+        headers,
+        credentials: 'include',
         body: formData,
       });
       
       if (!response.ok) {
-        throw new Error('Upload failed. Please ensure file is a valid image under 5MB.');
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || 'Upload failed. Please ensure file is an image under 25MB.');
       }
       
       const data = await response.json();
-      form.setValue('imageUrl', data.imageUrl);
+      const uploadedUrl = data.imageUrl || data.url;
+      form.setValue('imageUrl', uploadedUrl);
       
       toast({
         title: "Upload Complete",

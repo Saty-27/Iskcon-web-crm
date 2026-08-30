@@ -115,27 +115,39 @@ const VideosPage = () => {
     try {
       const formData = new FormData();
       formData.append('image', file);
+      formData.append('file', file);
+      formData.append('type', 'video');
+      
+      const token = localStorage.getItem('authToken');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
       
       const response = await fetch('/api/upload/videos', {
         method: 'POST',
+        headers,
+        credentials: 'include',
         body: formData,
       });
       
       if (!response.ok) {
-        throw new Error('Upload failed');
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || 'Upload failed');
       }
       
       const data = await response.json();
-      form.setValue('thumbnailUrl', data.imageUrl);
+      const uploadedUrl = data.imageUrl || data.url;
+      form.setValue('thumbnailUrl', uploadedUrl);
       
       toast({
         title: "Success",
         description: "Thumbnail uploaded successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to upload thumbnail",
+        description: error?.message || "Failed to upload thumbnail",
         variant: "destructive",
       });
     } finally {

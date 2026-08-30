@@ -306,13 +306,21 @@ export default function EventModal({ isOpen, onClose, event }: EventModalProps) 
     setUploadingBanner(true);
 
     try {
+      const token = localStorage.getItem('authToken');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/upload', {
         method: 'POST',
+        headers,
+        credentials: 'include',
         body: formData,
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Upload failed');
       }
 
@@ -342,13 +350,21 @@ export default function EventModal({ isOpen, onClose, event }: EventModalProps) 
     setUploadingQrCode(true);
 
     try {
+      const token = localStorage.getItem('authToken');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/upload', {
         method: 'POST',
+        headers,
+        credentials: 'include',
         body: formData,
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Upload failed');
       }
 

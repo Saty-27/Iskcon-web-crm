@@ -130,21 +130,34 @@ const SocialLinksPage = () => {
       
       const formData = new FormData();
       formData.append('icon', file);
+      formData.append('file', file);
+      formData.append('image', file);
+      formData.append('type', 'social-icon');
+      
+      const token = localStorage.getItem('authToken');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
       
       const response = await fetch('/api/upload/social-icon', {
         method: 'POST',
+        headers,
+        credentials: 'include',
         body: formData,
       });
       
       if (!response.ok) {
-        throw new Error('Upload failed');
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || 'Upload failed');
       }
       
       const data = await response.json();
-      setFormData(prev => ({ ...prev, icon: data.url }));
+      const uploadedUrl = data.url || data.imageUrl;
+      setFormData(prev => ({ ...prev, icon: uploadedUrl }));
       toast({ title: "Success", description: "Icon uploaded successfully" });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to upload icon", variant: "destructive" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error?.message || "Failed to upload icon", variant: "destructive" });
     } finally {
       setUploadingIcon(false);
     }
