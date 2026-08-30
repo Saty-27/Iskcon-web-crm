@@ -32,8 +32,9 @@ router.post('/initiate', async (req, res) => {
     const txnid = `ISKCON_${nanoid(8)}`;
     
     // Determine success and failure URLs
-    const protocol = 'http';  // Force HTTP since server doesn't have SSL certificate
-    const host = req.headers.host || req.hostname;
+    const host = req.headers.host || req.hostname || '';
+    const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+    const protocol = isLocal ? (req.protocol || 'http') : 'https';
     const baseUrl = `${protocol}://${host}`;
     
     // PayU will redirect to these URLs after payment completion

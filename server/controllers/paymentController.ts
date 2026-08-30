@@ -51,8 +51,8 @@ export const initializePayment = async (req: Request, res: Response) => {
       email,
       phone,
       udf1: donation.id.toString(), // Store donation ID for reference
-      surl: `${req.protocol}://${req.get('host')}/api/payments/success`,
-      furl: `${req.protocol}://${req.get('host')}/api/payments/failure`
+      surl: `${(req.get('host') || '').includes('localhost') || (req.get('host') || '').includes('127.0.0.1') ? (req.protocol || 'http') : 'https'}://${req.get('host')}/api/payments/success`,
+      furl: `${(req.get('host') || '').includes('localhost') || (req.get('host') || '').includes('127.0.0.1') ? (req.protocol || 'http') : 'https'}://${req.get('host')}/api/payments/failure`
     };
 
     // Get payment form data with hash

@@ -1,6 +1,8 @@
 import SEO from '@/components/seo/SEO';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import ContactSection from '@/components/home/ContactSection';
+import { Clock, Navigation, Info, MapPin } from 'lucide-react';
 
 const Contact = () => {
   return (
@@ -31,11 +33,15 @@ const Contact = () => {
           </div>
         </section>
         
+        {/* Contact Form Section */}
+        <ContactSection />
+        
         {/* Map Section */}
         <section className="py-16 bg-white">
           <div className="container mx-auto px-4">
             <div className="max-w-5xl mx-auto">
-              <h2 className="font-poppins font-bold text-3xl text-primary mb-8 text-center">
+              <h2 className="font-poppins font-bold text-3xl text-primary mb-8 text-center flex items-center justify-center gap-2">
+                <MapPin className="w-7 h-7 text-primary" />
                 Our Location
               </h2>
               
@@ -55,7 +61,7 @@ const Contact = () => {
         </section>
         
         {/* Visit Information */}
-        <section className="py-16 bg-white">
+        <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="max-w-5xl mx-auto">
               <h2 className="font-poppins font-bold text-3xl text-primary mb-8 text-center">
@@ -63,26 +69,26 @@ const Contact = () => {
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="bg-neutral p-6 rounded-xl shadow-md">
-                  <div className="w-14 h-14 mx-auto bg-primary rounded-full flex items-center justify-center mb-4">
-                    <i className="ri-time-fill text-white text-2xl"></i>
+                <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                  <div className="w-14 h-14 mx-auto bg-primary rounded-full flex items-center justify-center mb-4 text-white shadow-xs">
+                    <Clock className="w-7 h-7" />
                   </div>
                   <h3 className="font-poppins font-semibold text-xl text-primary mb-2 text-center">Visiting Hours</h3>
-                  <ul className="space-y-2 font-opensans">
+                  <ul className="space-y-2 font-opensans text-sm text-gray-700">
                     <li><strong>Darshan Hours:</strong> 4:30 AM to 9:00 PM</li>
                     <li><strong>Morning Arti:</strong> 4:30 AM</li>
                     <li><strong>Evening Arti:</strong> 7:00 PM</li>
                     <li><strong>Office Hours:</strong> 9:00 AM to 5:00 PM</li>
-                    <li className="text-sm italic">Special timings during festivals</li>
+                    <li className="text-xs italic text-gray-500">Special timings during festivals</li>
                   </ul>
                 </div>
                 
-                <div className="bg-neutral p-6 rounded-xl shadow-md">
-                  <div className="w-14 h-14 mx-auto bg-primary rounded-full flex items-center justify-center mb-4">
-                    <i className="ri-route-fill text-white text-2xl"></i>
+                <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                  <div className="w-14 h-14 mx-auto bg-primary rounded-full flex items-center justify-center mb-4 text-white shadow-xs">
+                    <Navigation className="w-7 h-7" />
                   </div>
                   <h3 className="font-poppins font-semibold text-xl text-primary mb-2 text-center">Getting Here</h3>
-                  <ul className="space-y-2 font-opensans">
+                  <ul className="space-y-2 font-opensans text-sm text-gray-700">
                     <li><strong>By Train:</strong> Nearest station - Vile Parle (Western Line)</li>
                     <li><strong>By Bus:</strong> Multiple BEST bus routes available</li>
                     <li><strong>By Taxi/Auto:</strong> Easily accessible from anywhere in Mumbai</li>
@@ -91,12 +97,12 @@ const Contact = () => {
                   </ul>
                 </div>
                 
-                <div className="bg-neutral p-6 rounded-xl shadow-md">
-                  <div className="w-14 h-14 mx-auto bg-primary rounded-full flex items-center justify-center mb-4">
-                    <i className="ri-information-fill text-white text-2xl"></i>
+                <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                  <div className="w-14 h-14 mx-auto bg-primary rounded-full flex items-center justify-center mb-4 text-white shadow-xs">
+                    <Info className="w-7 h-7" />
                   </div>
                   <h3 className="font-poppins font-semibold text-xl text-primary mb-2 text-center">Guidelines</h3>
-                  <ul className="space-y-2 font-opensans">
+                  <ul className="space-y-2 font-opensans text-sm text-gray-700">
                     <li>Modest dress is recommended for temple visits</li>
                     <li>Please remove shoes before entering the temple hall</li>
                     <li>Photography may be restricted in certain areas</li>

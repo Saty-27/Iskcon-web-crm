@@ -42,22 +42,16 @@ export default function CategoryDonation() {
     enabled: !!categoryId,
   });
 
-  // Fetch donation cards for this category with better caching
+  // Fetch donation cards for this category with client-side caching
   const { data: donationCards = [], isLoading: cardsLoading } = useQuery<DonationCard[]>({
     queryKey: [`/api/donation-cards/category/${categoryId}`],
     enabled: !!categoryId,
-    staleTime: 0, // Always fetch fresh data
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
   });
 
   // Fetch category-specific bank details
   const { data: bankDetails = [] } = useQuery<BankDetails[]>({
     queryKey: [`/api/categories/${categoryId}/bank-details`],
     enabled: !!categoryId,
-    staleTime: 0, // Always fetch fresh data
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
   });
 
   // Filter donation cards to show only active ones

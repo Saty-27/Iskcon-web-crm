@@ -7,14 +7,15 @@ import { Toaster } from "@/components/ui/toaster";
 // Critical landing and donation entry routes (loaded eagerly for instant LCP)
 import Home from "@/pages/Home";
 import Donate from "@/pages/Donate";
+import CategoryDonation from "@/pages/CategoryDonation";
+import EventDonation from "@/pages/EventDonation";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import PaymentFailure from "@/pages/PaymentFailure";
+import Contact from "@/pages/Contact";
 import NotFound from "@/pages/not-found";
 
 // Secondary public routes (lazy loaded on demand)
 const Events = lazy(() => import("@/pages/Events"));
-const CategoryDonation = lazy(() => import("@/pages/CategoryDonation"));
-const EventDonation = lazy(() => import("@/pages/EventDonation"));
 const DonateThankYou = lazy(() => import("@/pages/donate/ThankYou"));
 const PaymentGateway = lazy(() => import("@/pages/donate/PaymentGateway"));
 const PaymentFailed = lazy(() => import("@/pages/donate/PaymentFailed"));
@@ -22,7 +23,6 @@ const Gallery = lazy(() => import("@/pages/Gallery"));
 const Videos = lazy(() => import("@/pages/Videos"));
 const Blog = lazy(() => import("@/pages/Blog"));
 const BlogPost = lazy(() => import("@/pages/BlogPost"));
-const Contact = lazy(() => import("@/pages/Contact"));
 const Login = lazy(() => import("@/pages/Login"));
 const Register = lazy(() => import("@/pages/Register"));
 const Profile = lazy(() => import("@/pages/Profile"));

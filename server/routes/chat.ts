@@ -174,8 +174,45 @@ router.get('/messages/:conversationId', requireAuth, async (req: Request, res: R
     // Ownership check: User must own the conversation OR be an Admin
     const userId = (req as any).userId;
     const userRole = (req as any).userRole;
+    const isAdmin = userRole === 'admin' || userRole === 'super_admin';
 
-    if (userRole !== 'admin' && conversation.userId !== userId) {
+    if (!isAdmin && conversation.userId !== userId) {
+      return res.status(403).json({ message: "Access forbidden: You do not own this conversation" });
+    }
+
+    const limit = parseInt(req.query.limit as string) || 50;
+    const beforeId = req.query.beforeId ? parseInt(req.query.beforeId as string) : undefined;
+
+    const messages = await storage.getMessages(conversationId, limit, beforeId);
+
+    res.json({
+      conversation,
+      messages,
+    });
+  } catch (error) {
+    console.error("Error fetching chat messages:", error);
+    res.status(500).json({ message: "Error fetching messages" });
+  }
+});
+
+// Alias for GET /conversations/:conversationId/messages
+router.get('/conversations/:conversationId/messages', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const conversationId = parseInt(req.params.conversationId);
+    if (isNaN(conversationId)) {
+      return res.status(400).json({ message: "Invalid conversation ID" });
+    }
+
+    const conversation = await storage.getConversationById(conversationId);
+    if (!conversation) {
+      return res.status(404).json({ message: "Conversation not found" });
+    }
+
+    const userId = (req as any).userId;
+    const userRole = (req as any).userRole;
+    const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+
+    if (!isAdmin && conversation.userId !== userId) {
       return res.status(403).json({ message: "Access forbidden: You do not own this conversation" });
     }
 
@@ -253,12 +290,15 @@ router.post('/message', requireAuth, async (req: Request, res: Response) => {
     const userId = (req as any).userId;
     const userRole = (req as any).userRole;
     const user = (req as any).user;
+    const isAdmin = userRole === 'admin' || userRole === 'super_admin';
 
-    if (userRole !== 'admin' && conversation.userId !== userId) {
+    const isOwnConversation = conversation.userId === userId;
+
+    if (!isOwnConversation && !isAdmin) {
       return res.status(403).json({ message: "Access forbidden" });
     }
 
-    const senderType = userRole === 'admin' ? 'admin' : 'user';
+    const senderType = isOwnConversation ? 'user' : 'admin';
     const cleanMessage = message ? String(message).slice(0, 5000) : null;
 
     const createdMessage = await storage.createMessage({
@@ -275,7 +315,7 @@ router.post('/message', requireAuth, async (req: Request, res: Response) => {
     // Broadcast over WebSocket to all participants
     broadcastChatMessage(createdMessage, convId, {
       id: userId,
-      name: user.name || user.username || 'User',
+      name: user.name || user.username || (senderType === 'admin' ? 'Temple Support' : 'Devotee'),
       role: userRole,
     }, conversation.userId);
 
@@ -304,12 +344,14 @@ router.patch('/messages/:conversationId/read', requireAuth, async (req: Request,
 
     const userRole = (req as any).userRole;
     const userId = (req as any).userId;
+    const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+    const isOwnConversation = conversation.userId === userId;
 
-    if (userRole !== 'admin' && conversation.userId !== userId) {
+    if (!isOwnConversation && !isAdmin) {
       return res.status(403).json({ message: "Access forbidden" });
     }
 
-    const readerType = userRole === 'admin' ? 'admin' : 'user';
+    const readerType = isOwnConversation ? 'user' : 'admin';
     await storage.markMessagesAsRead(conversationId, readerType);
 
     res.json({ success: true, conversationId });
@@ -324,8 +366,9 @@ router.get('/unread-count', requireAuth, async (req: Request, res: Response) => 
   try {
     const userRole = (req as any).userRole;
     const userId = (req as any).userId;
+    const isAdmin = userRole === 'admin' || userRole === 'super_admin';
 
-    if (userRole === 'admin') {
+    if (isAdmin) {
       const count = await storage.getAdminTotalUnreadCount();
       return res.json({ unreadCount: count });
     } else {

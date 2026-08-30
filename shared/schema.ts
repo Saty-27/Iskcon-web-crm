@@ -34,8 +34,9 @@ export const banners = pgTable("banners", {
   imageAlt: text("image_alt"), // SEO alt text for banner image
   buttonText: text("button_text"),
   buttonLink: text("button_link"),
+  screenType: text("screen_type").default("desktop").notNull(), // 'desktop' | 'mobile'
   isActive: boolean("is_active").default(true).notNull(),
-  order: integer("order").notNull(),
+  order: integer("order").notNull().default(0),
 });
 
 export const insertBannerSchema = createInsertSchema(banners).omit({

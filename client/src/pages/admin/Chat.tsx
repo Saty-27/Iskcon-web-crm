@@ -100,12 +100,17 @@ const AdminChat = () => {
       const res = await fetch(`/api/chat/messages/${convId}?limit=60`, { credentials: 'include', headers });
       if (res.ok) {
         const data = await res.json();
-        setMessages(data.messages || []);
+        // Guard against race condition: Only commit if still viewing this conversation
+        if (selectedConvRef.current?.id === convId) {
+          setMessages(data.messages || []);
+        }
       }
     } catch (err) {
       console.error('Error loading conversation messages:', err);
     } finally {
-      setIsLoadingMessages(false);
+      if (selectedConvRef.current?.id === convId) {
+        setIsLoadingMessages(false);
+      }
     }
   }, []);
 
@@ -138,18 +143,31 @@ const AdminChat = () => {
     }
   }, []);
 
-  // Select conversation
+  // Select conversation - with instant previous state clearing
   const handleSelectConversation = (conv: AdminConversation) => {
-    setSelectedConversation(conv);
-    fetchMessagesForConv(conv.id);
-    markConversationRead(conv.id);
+    if (selectedConversation?.id === conv.id) return;
 
+    // 1. Immediately update selected conversation and sync ref
+    setSelectedConversation(conv);
+    selectedConvRef.current = conv;
+
+    // 2. CRITICAL: Instantly clear previous conversation messages to prevent cross-chat mixing
+    setMessages([]);
+    setIsLoadingMessages(true);
+
+    // 3. Inform WebSocket server about joined conversation
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({
         type: 'chat:join_conversation',
         payload: { conversationId: conv.id }
       }));
     }
+
+    // 4. Fetch only this specific conversation's history
+    fetchMessagesForConv(conv.id);
+
+    // 5. Mark messages in this conversation as read
+    markConversationRead(conv.id);
   };
 
   // Connect WebSocket
@@ -165,6 +183,12 @@ const AdminChat = () => {
 
     ws.onopen = () => {
       setIsConnected(true);
+      if (selectedConvRef.current?.id) {
+        ws.send(JSON.stringify({
+          type: 'chat:join_conversation',
+          payload: { conversationId: selectedConvRef.current.id }
+        }));
+      }
     };
 
     ws.onmessage = (event) => {
@@ -175,21 +199,24 @@ const AdminChat = () => {
           case 'chat:new_message': {
             const { message, conversationId, sender } = payload;
             const currentSelected = selectedConvRef.current;
+            const msgConvId = Number(conversationId);
 
-            // Update messages list if current conversation is open
-            if (currentSelected && Number(currentSelected.id) === Number(conversationId)) {
+            // STRICT CONVERSATION ISOLATION:
+            // Only append to the active messages list if this message strictly belongs to the currently open conversation!
+            if (currentSelected && Number(currentSelected.id) === msgConvId) {
               setMessages((prev) => {
+                if (Number(message.conversationId) !== msgConvId) return prev;
                 if (prev.some((m) => m.id === message.id)) return prev;
                 return [...prev, message];
               });
               if (message.senderType === 'user') {
-                markConversationRead(conversationId);
+                markConversationRead(msgConvId);
               }
             }
 
-            // Update conversation list order and preview
+            // Update conversation list order, last message snippet, and unread counts
             setConversations((prev) => {
-              const existingIndex = prev.findIndex((c) => c.id === Number(conversationId));
+              const existingIndex = prev.findIndex((c) => c.id === msgConvId);
               const snippet = message.message || (message.fileName ? `📎 ${message.fileName}` : 'Attachment');
               
               if (existingIndex > -1) {
@@ -198,25 +225,24 @@ const AdminChat = () => {
                 targetConv.lastMessageAt = message.createdAt;
                 targetConv.lastMessageText = snippet;
                 
-                // Increment unread count if not currently viewing this conversation
-                if (!currentSelected || currentSelected.id !== Number(conversationId)) {
-                  if (message.senderType === 'user') {
-                    targetConv.unreadCount = (targetConv.unreadCount || 0) + 1;
-                  }
+                const isCurrentlyOpen = currentSelected && Number(currentSelected.id) === msgConvId;
+                if (!isCurrentlyOpen && message.senderType === 'user') {
+                  targetConv.unreadCount = (targetConv.unreadCount || 0) + 1;
+                } else if (isCurrentlyOpen) {
+                  targetConv.unreadCount = 0;
                 }
                 
-                // Move to top
+                // Move updated conversation to top of list
                 updated.splice(existingIndex, 1);
                 return [targetConv, ...updated];
               } else {
-                // Fetch conversations again if new conversation arrived
                 fetchConversations();
                 return prev;
               }
             });
 
-            // Notification toast for incoming user messages
-            if (message.senderType === 'user') {
+            // Notification toast for incoming user messages when not currently viewing that chat
+            if (message.senderType === 'user' && (!currentSelected || Number(currentSelected.id) !== msgConvId)) {
               toast({
                 title: `💬 New Message from ${sender?.name || 'Devotee'}`,
                 description: message.message ? (message.message.length > 50 ? message.message.slice(0, 47) + '...' : message.message) : 'Sent an attachment',
@@ -376,7 +402,7 @@ const AdminChat = () => {
 
         if (res.ok) {
           const resData = await res.json();
-          if (resData.message) {
+          if (resData.message && Number(selectedConvRef.current?.id) === Number(payload.conversationId)) {
             setMessages((prev) => {
               if (prev.some((m) => m.id === resData.message.id)) return prev;
               return [...prev, resData.message];

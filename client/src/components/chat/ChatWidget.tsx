@@ -28,7 +28,7 @@ const ChatWidget: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -54,6 +54,21 @@ const ChatWidget: React.FC = () => {
     connectSocket,
     markAsRead,
   } = useChat(undefined, false);
+
+  // Auto-close chat window on navigating to /register, /login, or any auth/admin route
+  useEffect(() => {
+    if (location === '/register' || location === '/login' || location.startsWith('/admin')) {
+      setIsOpen(false);
+    }
+  }, [location]);
+
+  // Handle direct navigation with auto-closing
+  const handleAuthNavigation = (path: string) => {
+    setIsOpen(false);
+    setIsMinimized(false);
+    setLocation(path);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Initialize conversation when opened
   useEffect(() => {
@@ -221,11 +236,29 @@ const ChatWidget: React.FC = () => {
                   <p className="text-xs text-gray-600 max-w-xs mb-5">
                     Connect directly with our temple administration for donation queries, seva assistance, or spiritual questions.
                   </p>
-                  <Link href={`/login?redirect=${encodeURIComponent(location)}`}>
-                    <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-medium text-xs py-2.5 px-6 rounded-xl shadow-md">
+                  <div className="w-full space-y-2.5 max-w-xs">
+                    <Link 
+                      href={`/login?redirect=${encodeURIComponent(location || '/')}`}
+                      onClick={() => {
+                        setIsOpen(false);
+                        setIsMinimized(false);
+                      }}
+                      className="w-full flex items-center justify-center bg-orange-600 hover:bg-orange-700 text-white font-semibold text-xs py-2.5 px-6 rounded-xl shadow-md transition-all cursor-pointer select-none"
+                    >
                       Login to Chat
-                    </Button>
-                  </Link>
+                    </Link>
+
+                    <Link 
+                      href="/register"
+                      onClick={() => {
+                        setIsOpen(false);
+                        setIsMinimized(false);
+                      }}
+                      className="w-full flex items-center justify-center bg-white border-2 border-orange-300 text-orange-800 hover:bg-orange-50 font-semibold text-xs py-2.5 px-6 rounded-xl transition-all cursor-pointer select-none"
+                    >
+                      Register New Account
+                    </Link>
+                  </div>
                 </div>
               ) : (
                 <>

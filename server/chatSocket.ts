@@ -148,35 +148,37 @@ export function setupChatWebSocket(server: Server) {
               const conversation = await storage.getConversationById(conversationId);
               if (!conversation) return;
 
+              const isOwnConversation = conversation.userId === ws.userId;
               const isAdminUser = ws.userRole === 'super_admin' || ws.userRole === 'admin';
-              const hasChatView = hasPermission(ws.userRole, ws.userPermissions, 'chat.view');
 
-              if (isAdminUser && !hasChatView) {
-                ws.send(JSON.stringify({
-                  type: 'chat:error',
-                  payload: { message: 'Permission denied: chat.view required' }
-                }));
-                return;
-              }
+              if (!isOwnConversation) {
+                if (!isAdminUser) {
+                  ws.send(JSON.stringify({
+                    type: 'chat:error',
+                    payload: { message: 'Access denied to this conversation' }
+                  }));
+                  return;
+                }
 
-              if (!isAdminUser && conversation.userId !== ws.userId) {
-                ws.send(JSON.stringify({
-                  type: 'chat:error',
-                  payload: { message: 'Access denied to this conversation' }
-                }));
-                return;
+                const hasChatView = hasPermission(ws.userRole, ws.userPermissions, 'chat.view');
+                if (!hasChatView) {
+                  ws.send(JSON.stringify({
+                    type: 'chat:error',
+                    payload: { message: 'Permission denied: chat.view required' }
+                  }));
+                  return;
+                }
               }
 
               ws.activeConversationId = conversationId;
               
               // Mark unread messages as read
-              const readerType = isAdminUser ? 'admin' : 'user';
+              const readerType = isOwnConversation ? 'user' : 'admin';
               await storage.markMessagesAsRead(conversationId, readerType);
 
               // Notify sender of read status
-              const targetUserId = isAdminUser ? conversation.userId : null;
-              if (targetUserId) {
-                sendToUser(targetUserId, {
+              if (!isOwnConversation) {
+                sendToUser(conversation.userId, {
                   type: 'chat:messages_read',
                   payload: { conversationId, readBy: 'admin', readAt: new Date() }
                 });
@@ -206,10 +208,19 @@ export function setupChatWebSocket(server: Server) {
                 return;
               }
 
+              const isOwnConversation = conversation.userId === ws.userId;
               const isAdminUser = ws.userRole === 'super_admin' || ws.userRole === 'admin';
 
-              // Admin permission check for replying in chat
-              if (isAdminUser) {
+              // If sending to someone else's conversation, user MUST be admin with chat.reply permission
+              if (!isOwnConversation) {
+                if (!isAdminUser) {
+                  ws.send(JSON.stringify({
+                    type: 'chat:error',
+                    payload: { message: 'Forbidden: You do not own this conversation' }
+                  }));
+                  return;
+                }
+
                 const canReply = hasPermission(ws.userRole, ws.userPermissions, 'chat.reply');
                 if (!canReply) {
                   ws.send(JSON.stringify({
@@ -218,17 +229,11 @@ export function setupChatWebSocket(server: Server) {
                   }));
                   return;
                 }
-              } else if (conversation.userId !== ws.userId) {
-                ws.send(JSON.stringify({
-                  type: 'chat:error',
-                  payload: { message: 'Forbidden: You do not own this conversation' }
-                }));
-                return;
               }
 
               // Limit message length
               const cleanMessage = message ? String(message).slice(0, 5000) : null;
-              const senderType = isAdminUser ? 'admin' : 'user';
+              const senderType = isOwnConversation ? 'user' : 'admin';
 
               // Persist message
               const createdMessage = await storage.createMessage({
@@ -247,7 +252,7 @@ export function setupChatWebSocket(server: Server) {
               // Dispatch via broadcast helper
               broadcastChatMessage(createdMessage, convId, {
                 id: ws.userId!,
-                name: ws.userName || (isAdminUser ? 'Temple Support' : 'Devotee'),
+                name: ws.userName || (senderType === 'admin' ? 'Temple Support' : 'Devotee'),
                 role: ws.userRole || 'user',
               }, conversation.userId);
               break;
@@ -261,6 +266,7 @@ export function setupChatWebSocket(server: Server) {
               const conversation = await storage.getConversationById(convId);
               if (!conversation) return;
 
+              const isAdminUser = ws.userRole === 'super_admin' || ws.userRole === 'admin';
               const typingPayload = {
                 type: 'chat:typing_status',
                 payload: {
@@ -268,11 +274,11 @@ export function setupChatWebSocket(server: Server) {
                   userId: ws.userId,
                   userName: ws.userName,
                   isTyping: !!isTyping,
-                  senderType: ws.userRole === 'admin' ? 'admin' : 'user',
+                  senderType: isAdminUser ? 'admin' : 'user',
                 }
               };
 
-              if (ws.userRole === 'admin') {
+              if (isAdminUser) {
                 sendToUser(conversation.userId, typingPayload);
               } else {
                 broadcastToAdmins(typingPayload);
@@ -288,7 +294,8 @@ export function setupChatWebSocket(server: Server) {
               const conversation = await storage.getConversationById(convId);
               if (!conversation) return;
 
-              const readerType = ws.userRole === 'admin' ? 'admin' : 'user';
+              const isAdminUser = ws.userRole === 'super_admin' || ws.userRole === 'admin';
+              const readerType = isAdminUser ? 'admin' : 'user';
               await storage.markMessagesAsRead(convId, readerType);
 
               const readPayload = {
@@ -325,7 +332,8 @@ export function setupChatWebSocket(server: Server) {
           if (userSet.size === 0) {
             userSockets.delete(ws.userId);
             // User went completely offline
-            if (ws.userRole !== 'admin') {
+            const isAdminUser = ws.userRole === 'super_admin' || ws.userRole === 'admin';
+            if (!isAdminUser) {
               broadcastToAdmins({
                 type: 'chat:user_presence',
                 payload: {
@@ -337,9 +345,7 @@ export function setupChatWebSocket(server: Server) {
           }
         }
 
-        if (ws.userRole === 'admin') {
-          adminSockets.delete(ws);
-        }
+        adminSockets.delete(ws);
         console.log(`[WebSocket] Socket disconnected for user: ${ws.userName} (ID: ${ws.userId})`);
       });
 

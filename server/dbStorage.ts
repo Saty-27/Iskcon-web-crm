@@ -1,4 +1,6 @@
 import { eq, and, desc, lt, sql, isNull, inArray } from "drizzle-orm";
+import fs from "fs";
+import path from "path";
 import { db } from "./db";
 import { 
   users, banners, quotes, donationCategories, donationCards, eventDonationCards, bankDetails, eventBankDetails, categoryBankDetails, events, gallery, videos, liveVideos,
@@ -149,8 +151,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Banner operations
-  async getBanners(): Promise<Banner[]> {
-    return await db.select().from(banners);
+  async getBanners(screenType?: string): Promise<Banner[]> {
+    if (screenType) {
+      return await db.select().from(banners).where(eq(banners.screenType, screenType)).orderBy(banners.order, banners.id);
+    }
+    return await db.select().from(banners).orderBy(banners.order, banners.id);
   }
 
   async getBanner(id: number): Promise<Banner | undefined> {
@@ -169,8 +174,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteBanner(id: number): Promise<boolean> {
+    const [banner] = await db.select().from(banners).where(eq(banners.id, id));
+    if (!banner) return false;
+
     const result = await db.delete(banners).where(eq(banners.id, id));
-    return result.rowCount > 0;
+    
+    // Safely delete file from disk if uploaded
+    if (banner.imageUrl && banner.imageUrl.startsWith('/uploads/banners/')) {
+      try {
+        const filePath = path.join(process.cwd(), banner.imageUrl);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log(`[Storage] Deleted banner image file: ${filePath}`);
+        }
+      } catch (err) {
+        console.error('[Storage] Error deleting banner file from disk:', err);
+      }
+    }
+
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Quote operations

@@ -45,7 +45,7 @@ export interface IStorage {
   getAuditLogsCount(section?: string, userId?: number): Promise<number>;
   
   // Banner management
-  getBanners(): Promise<Banner[]>;
+  getBanners(screenType?: string): Promise<Banner[]>;
   getBanner(id: number): Promise<Banner | undefined>;
   createBanner(banner: InsertBanner): Promise<Banner>;
   updateBanner(id: number, bannerData: Partial<Banner>): Promise<Banner | undefined>;
@@ -582,8 +582,9 @@ export class MemStorage implements IStorage {
   }
 
   // Banner methods
-  async getBanners(): Promise<Banner[]> {
+  async getBanners(screenType?: string): Promise<Banner[]> {
     return Array.from(this.bannersData.values())
+      .filter((b) => !screenType || b.screenType === screenType)
       .sort((a, b) => a.order - b.order);
   }
 

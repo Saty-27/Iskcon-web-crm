@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Banner } from '@shared/schema';
@@ -6,12 +6,36 @@ import iskconDeitiesImg from "@assets/gradientbg_1752332694284.png";
 
 const HeroSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMobile, setIsMobile] = useState<boolean>(
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
-  const { data: banners = [] } = useQuery<Banner[]>({
+  const { data: rawBanners = [] } = useQuery<Banner[]>({
     queryKey: ['/api/banners'],
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
   });
+
+  // Filter banners based on user device (Desktop 1920x1080 vs Mobile 1080x1920)
+  const banners = useMemo(() => {
+    if (isMobile) {
+      const mobileOnly = rawBanners.filter((b) => b.screenType === 'mobile');
+      if (mobileOnly.length > 0) return mobileOnly;
+      return rawBanners.filter((b) => b.screenType === 'desktop' || !b.screenType);
+    } else {
+      const desktopOnly = rawBanners.filter((b) => b.screenType === 'desktop' || !b.screenType);
+      if (desktopOnly.length > 0) return desktopOnly;
+      return rawBanners;
+    }
+  }, [rawBanners, isMobile]);
   
   // Auto-advance slides if multiple banners exist
   useEffect(() => {
@@ -47,7 +71,7 @@ const HeroSlider = () => {
 
       {activeBanner ? (
         <div className="h-full w-full relative transition-all duration-700 ease-in-out">
-          {/* Clicking anywhere on the banner background redirects to donation page */}
+          {/* Clicking anywhere on the banner background redirects to target action */}
           <Link href={bannerRedirectUrl} className="block w-full h-full cursor-pointer select-none">
             <img 
               src={activeBanner.imageUrl} 
@@ -57,8 +81,8 @@ const HeroSlider = () => {
               fetchPriority="high"
               decoding="async"
               className="object-cover w-full h-full"
-              width="1920"
-              height="1080"
+              width={activeBanner.screenType === 'mobile' ? "1080" : "1920"}
+              height={activeBanner.screenType === 'mobile' ? "1920" : "1080"}
             />
           </Link>
 

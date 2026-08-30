@@ -36,24 +36,20 @@ export default function EventDonation() {
     return words.slice(0, wordLimit).join(' ') + '...';
   };
 
-  const { data: events = [] } = useQuery<Event[]>({
-    queryKey: ["/api/events"]
+  const { data: event, isLoading: eventLoading } = useQuery<Event>({
+    queryKey: [`/api/events/${eventId}`],
+    enabled: !!eventId,
   });
 
-  const { data: eventDonationCards = [] } = useQuery<EventDonationCard[]>({
+  const { data: eventDonationCards = [], isLoading: cardsLoading } = useQuery<EventDonationCard[]>({
     queryKey: [`/api/events/${eventId}/donation-cards`],
     enabled: !!eventId,
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
   });
 
   const { data: bankDetails = [] } = useQuery<BankDetails[]>({
-    queryKey: ["/api/bank-details"]
+    queryKey: [`/api/events/${eventId}/bank-details`],
+    enabled: !!eventId,
   });
-
-  const event = events.find(e => e.id === parseInt(eventId || "0"));
   
   // Filter event donation cards to show only active ones
   const activeEventDonationCards = eventDonationCards.filter(card => card.isActive);
@@ -87,6 +83,18 @@ export default function EventDonation() {
   };
 
   const currentBankDetail = bankDetails[0];
+
+  if (eventLoading || cardsLoading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-pulse text-gray-500">Loading festival details...</div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   if (!event) {
     return (

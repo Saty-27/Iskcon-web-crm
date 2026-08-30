@@ -218,6 +218,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  const bannerUpload = multer({ 
+    storage: storage_multer,
+    limits: {
+      fileSize: 1024 * 1024 // Strict 1 MB maximum limit (1,048,576 bytes)
+    },
+    fileFilter: function (req, file, cb) {
+      const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'video/mp4'];
+      if (allowedMimes.includes(file.mimetype) || file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only JPEG, PNG, WebP, AVIF images and MP4 videos are allowed for banners.'));
+      }
+    }
+  });
+
   // Static upload options with aggressive HTTP caching
   const staticUploadOptions = {
     maxAge: '7d',
@@ -320,18 +335,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Banner upload endpoint
+  // Banner upload endpoint (Strict 1MB limit & image/video validation)
   app.post("/api/upload/banner", isAdmin, (req, res) => {
-    upload.any()(req, res, (err: any) => {
+    bannerUpload.any()(req, res, (err: any) => {
       if (err) {
-        return res.status(400).json({ success: false, message: err.message });
+        console.error('Banner multer upload error:', err);
+        const errMsg = err.code === 'LIMIT_FILE_SIZE' 
+          ? 'Banner media must not be larger than 1 MB.' 
+          : (err.message || 'Error uploading banner media');
+        return res.status(400).json({ success: false, message: errMsg });
       }
       const uploadedFile = getUploadedFile(req);
       if (!uploadedFile) {
         return res.status(400).json({ success: false, message: "No file uploaded" });
       }
       const imageUrl = `/uploads/banners/${uploadedFile.filename}`;
-      res.json({ success: true, imageUrl, url: imageUrl });
+      res.json({ 
+        success: true, 
+        imageUrl, 
+        url: imageUrl,
+        fileName: uploadedFile.originalname,
+        fileSize: uploadedFile.size,
+        mimeType: uploadedFile.mimetype
+      });
     });
   });
 
@@ -399,20 +425,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     keys.forEach(k => delete apiCache[k]);
   };
 
-  // Banner API endpoints
+  // Banner API endpoints (Strict live fetching, screenType support & no stale browser caching)
   app.get("/api/banners", async (req, res) => {
     try {
-      const cached = getApiCache('banners');
-      if (cached) {
-        res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
-        return res.json(cached);
-      }
-      const banners = await storage.getBanners();
-      const active = banners.filter(b => b.isActive);
-      setApiCache('banners', active, 120);
-      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
-      res.json(active);
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+
+      const screenType = (req.query.screenType || req.query.screen || req.query.device) as string | undefined;
+      const showAll = req.query.all === 'true' || req.query.admin === 'true';
+
+      const banners = await storage.getBanners(screenType);
+      const result = showAll ? banners : banners.filter(b => b.isActive);
+      res.json(result);
     } catch (error) {
+      console.error('Error fetching banners:', error);
       res.status(500).json({ message: "Error fetching banners" });
     }
   });
@@ -463,8 +490,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       clearApiCache('banners');
       await logAdminActivity(req, 'delete', 'banners', id);
-      res.json({ message: "Banner deleted" });
+      res.json({ message: "Banner deleted", success: true });
     } catch (error) {
+      console.error('Banner delete error:', error);
       res.status(500).json({ message: "Error deleting banner" });
     }
   });
@@ -2333,8 +2361,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         udf3: eventId?.toString() || '',
         udf4: eventCardId?.toString() || '',
         udf5: isCustomAmount ? 'true' : 'false',
-        surl: `http://${req.get('host')}/api/payments/success`,
-        furl: `http://${req.get('host')}/api/payments/failure`,
+        surl: `${(req.get('host') || '').includes('localhost') || (req.get('host') || '').includes('127.0.0.1') ? (req.protocol || 'http') : 'https'}://${req.get('host')}/api/payments/success`,
+        furl: `${(req.get('host') || '').includes('localhost') || (req.get('host') || '').includes('127.0.0.1') ? (req.protocol || 'http') : 'https'}://${req.get('host')}/api/payments/failure`,
         hash: ''
       };
 

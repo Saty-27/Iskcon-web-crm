@@ -15,6 +15,7 @@ import { initializeRbacDatabase } from "./initRbacDb";
 import { setupChatWebSocket } from "./chatSocket";
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Try to enable Gzip/Deflate compression if available
 try {
