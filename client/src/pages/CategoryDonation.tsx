@@ -376,46 +376,84 @@ export default function CategoryDonation() {
           </div>
 
           {/* Account Details and UPI - only show if available */}
-          {currentBankDetail && (
+          {currentBankDetail && (currentBankDetail.accountNumber || currentBankDetail.qrCodeUrl) && (
             <div style={{ 
               display: 'flex', 
-              justifyContent: 'space-between', 
+              flexWrap: 'wrap',
+              justifyContent: 'center', 
+              alignItems: 'stretch',
               marginTop: '30px', 
-              gap: '20px' 
+              gap: '24px' 
             }}>
-              <div style={{ 
-                flex: 1, 
-                backgroundColor: '#fff', 
-                padding: '20px', 
-                borderRadius: '8px', 
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)' 
-              }}>
-                <h3 style={{ marginBottom: '15px' }}>Account Details</h3>
-                <p style={{ marginBottom: '8px' }}>Bank Name: {currentBankDetail.bankName}</p>
-                <p style={{ marginBottom: '8px' }}>Account Name: {currentBankDetail.accountName}</p>
-                <p style={{ marginBottom: '8px' }}>Account Number: {currentBankDetail.accountNumber}</p>
-                <p style={{ marginBottom: '8px' }}>IFSC Code: {currentBankDetail.ifscCode}</p>
-              </div>
+              {currentBankDetail.accountNumber && (
+                <div style={{ 
+                  flex: '1 1 320px', 
+                  maxWidth: '500px',
+                  backgroundColor: '#fff', 
+                  padding: '24px', 
+                  borderRadius: '12px', 
+                  border: '1px solid #f3f4f6',
+                  boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)' 
+                }}>
+                  <h3 style={{ marginBottom: '16px', color: '#B45309', fontWeight: 700, fontSize: '18px' }}>
+                    Account Details
+                  </h3>
+                  {currentBankDetail.bankName && <p style={{ marginBottom: '8px', color: '#374151', fontSize: '14px' }}><strong>Bank Name:</strong> {currentBankDetail.bankName}</p>}
+                  {currentBankDetail.accountName && <p style={{ marginBottom: '8px', color: '#374151', fontSize: '14px' }}><strong>Account Name:</strong> {currentBankDetail.accountName}</p>}
+                  {currentBankDetail.accountNumber && <p style={{ marginBottom: '8px', color: '#374151', fontSize: '14px' }}><strong>Account Number:</strong> {currentBankDetail.accountNumber}</p>}
+                  {currentBankDetail.ifscCode && <p style={{ marginBottom: '8px', color: '#374151', fontSize: '14px' }}><strong>IFSC Code:</strong> {currentBankDetail.ifscCode}</p>}
+                  {currentBankDetail.swiftCode && <p style={{ marginBottom: '8px', color: '#374151', fontSize: '14px' }}><strong>SWIFT Code:</strong> {currentBankDetail.swiftCode}</p>}
+                </div>
+              )}
               
-              <div style={{ 
-                flex: 1, 
-                textAlign: 'center', 
-                backgroundColor: '#fff', 
-                padding: '20px', 
-                borderRadius: '8px', 
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)' 
-              }}>
-                <h3 style={{ marginBottom: '15px' }}>Donate through UPI</h3>
-                {currentBankDetail.qrCodeUrl ? (
-                  <img 
-                    src={currentBankDetail.qrCodeUrl} 
-                    alt="QR Code" 
-                    style={{ height: '200px', width: '200px', objectFit: 'contain' }}
-                  />
-                ) : (
-                  <p>QR Code not available</p>
-                )}
-              </div>
+              {currentBankDetail.qrCodeUrl && (
+                <div style={{ 
+                  flex: '1 1 320px', 
+                  maxWidth: '500px',
+                  backgroundColor: '#fff', 
+                  padding: '24px', 
+                  borderRadius: '12px', 
+                  border: '1px solid #f3f4f6',
+                  boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center'
+                }}>
+                  <h3 style={{ marginBottom: '16px', color: '#B45309', fontWeight: 700, fontSize: '18px', textAlign: 'center' }}>
+                    Donate through UPI
+                  </h3>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    width: '100%',
+                    padding: '16px',
+                    backgroundColor: '#FAFAFA',
+                    borderRadius: '8px',
+                    border: '1px dashed #E5E7EB'
+                  }}>
+                    <img 
+                      src={currentBankDetail.qrCodeUrl} 
+                      alt="UPI QR Code" 
+                      style={{ 
+                        maxHeight: '220px', 
+                        maxWidth: '220px', 
+                        width: '100%', 
+                        height: 'auto', 
+                        objectFit: 'contain',
+                        display: 'block',
+                        margin: '0 auto',
+                        borderRadius: '4px'
+                      }}
+                    />
+                  </div>
+                  <p style={{ marginTop: '12px', fontSize: '13px', color: '#6B7280' }}>
+                    Scan with any UPI app (GPay, PhonePe, Paytm, BHIM)
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
