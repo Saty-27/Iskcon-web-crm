@@ -143,27 +143,40 @@ const CurrentEvents = () => {
           </div>
         )}
 
-        {/* Receipt Information */}
-        <div className="receipt-info">
-          <h3 className="receipt-title">Receipts for your donation</h3>
-          <p>
-            80G available as per Income Tax Act 1961 and rules made thereunder.
-            Tax Exemption Certificate Ref. No.: AAATI0017PF20219
-          </p>
-          <p>
-            To get the receipt of donation made through NEFT, RTGS, IMPS PayTm,
-            UPI as mentioned above, please share your legal name, postal address
-            with pincode (and PAN if you need 80G receipt) along with transaction
-            details on pranav@iskcontrust.org
-          </p>
+        {/* Receipt Information & Tax Exemption Terms */}
+        <div className="receipt-info bg-white p-6 rounded-xl border border-gray-100 shadow-xs mt-8">
+          <h3 className="receipt-title font-bold text-lg text-primary mb-3">Receipts for your donation & Tax Exemption Terms</h3>
+          <ul className="text-xs text-gray-700 space-y-2 list-disc list-outside pl-4 leading-relaxed font-opensans">
+            <li>
+              This donation receipt is an acknowledgement only and not for the purpose of claiming deduction under Section 133 of the Income-tax Act, 2025 (Previously 80G Deduction).
+            </li>
+            <li>
+              Form No. 114 (10BE), Certificate of donation under the relevant provisions of Section 133 of the Income-tax Act, 2025, will be issued to you as per provisions of the Income-tax Act, 2025 and rules made thereunder.
+            </li>
+            <li>
+              For all types of donations, irrespective of amount and mode of payment, full legal name and address with PIN are required. Further, PAN is compulsory to obtain Form No. 114 (10BE). Please ensure that the same are mentioned correctly in the donation receipt.
+            </li>
+            <li>Form No. 114 (10BE) is not available for any cash donation.</li>
+            <li>
+              Form No. 114 (10BE) will be available in PDF version only. Please ensure to mention correct WhatsApp number and E-mail ID to receive the same.
+            </li>
+            <li>PAN is compulsory for all donations of Rs. 50,000/- or more.</li>
+            <li>In case of payment by cheque, this donation receipt is valid subject to clearance of the cheque.</li>
+            <li>
+              ISKCON's Unique Registration Number (URN) for donations eligible under Section 133 of the Income-tax Act, 2025 (previously Section 80G) is <b>AAATI0017P27MB02</b> – is valid till March 31, 2031 and is to be renewed thereafter periodically as per provisions of the Income-tax Act, 2025 and rules made thereunder.
+            </li>
+            <li>
+              In case of any error/discrepancy in this receipt, including your Name, address, PAN, E-mail ID, WhatsApp number, etc., please contact the receipt-issuing centre for correction.
+            </li>
+            <li>Donations received on or after April 1, 2026 are governed by the Income-tax Act, 2025.</li>
+          </ul>
         </div>
 
         {/* Support */}
-        <div className="support-section">
-          <h3>Support</h3>
-          <p>
-            For more information please Call <b>+91-6263756519</b> from Monday to
-            Saturday between 9:00am to 6:00pm
+        <div className="support-section text-center mt-6 p-4 bg-orange-50/60 rounded-xl border border-orange-100">
+          <h3 className="font-bold text-base text-gray-900 mb-1">Donor Support & Inquiries</h3>
+          <p className="text-sm text-gray-700">
+            For more information please Call <b><a href="tel:+918369161527" className="text-primary hover:underline">+91-8369161527</a></b> from Monday to Saturday between 9:00am to 6:00pm
           </p>
         </div>
       </div>

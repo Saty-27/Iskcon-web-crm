@@ -422,28 +422,46 @@ export default function CategoryDonation() {
           {/* Receipt Information */}
           <div style={{ 
             backgroundColor: '#fff', 
-            padding: '20px', 
-            borderRadius: '8px', 
-            marginTop: '20px', 
-            boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)' 
+            padding: '24px', 
+            borderRadius: '12px', 
+            marginTop: '24px', 
+            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)',
+            border: '1px solid #f3f4f6'
           }}>
-            <h3 style={{ marginBottom: '15px' }}>Receipts for your donation</h3>
-            <p style={{ marginBottom: '10px' }}>
-              Support {category.name} at ISKCON Juhu. Your donation helps us continue our sacred services.
-            </p>
-            <p style={{ marginBottom: '10px' }}>
-              80G available as per Income Tax Act 1961 and rules made thereunder.
-            </p>
-            <p>
-              To get the receipt of donation, please share your details with our team.
-            </p>
+            <h3 style={{ marginBottom: '12px', color: '#B45309', fontWeight: 700, fontSize: '18px' }}>
+              Receipts for your donation & Tax Exemption Terms
+            </h3>
+            <ul style={{ fontSize: '12px', color: '#374151', lineHeight: '1.7', paddingLeft: '18px', listStyleType: 'disc' }}>
+              <li style={{ marginBottom: '6px' }}>
+                This donation receipt is an acknowledgement only and not for the purpose of claiming deduction under Section 133 of the Income-tax Act, 2025 (Previously 80G Deduction).
+              </li>
+              <li style={{ marginBottom: '6px' }}>
+                Form No. 114 (10BE), Certificate of donation under the relevant provisions of Section 133 of the Income-tax Act, 2025, will be issued to you as per provisions of the Income-tax Act, 2025 and rules made thereunder.
+              </li>
+              <li style={{ marginBottom: '6px' }}>
+                For all types of donations, irrespective of amount and mode of payment, full legal name and address with PIN are required. Further, PAN is compulsory to obtain Form No. 114 (10BE). Please ensure that the same are mentioned correctly in the donation receipt.
+              </li>
+              <li style={{ marginBottom: '6px' }}>Form No. 114 (10BE) is not available for any cash donation.</li>
+              <li style={{ marginBottom: '6px' }}>
+                Form No. 114 (10BE) will be available in PDF version only. Please ensure to mention correct WhatsApp number and E-mail ID to receive the same.
+              </li>
+              <li style={{ marginBottom: '6px' }}>PAN is compulsory for all donations of Rs. 50,000/- or more.</li>
+              <li style={{ marginBottom: '6px' }}>In case of payment by cheque, this donation receipt is valid subject to clearance of the cheque.</li>
+              <li style={{ marginBottom: '6px' }}>
+                ISKCON's Unique Registration Number (URN) for donations eligible under Section 133 of the Income-tax Act, 2025 (previously Section 80G) is <strong>AAATI0017P27MB02</strong> – is valid till March 31, 2031 and is to be renewed thereafter periodically as per provisions of the Income-tax Act, 2025 and rules made thereunder.
+              </li>
+              <li style={{ marginBottom: '6px' }}>
+                In case of any error/discrepancy in this receipt, including your Name, address, PAN, E-mail ID, WhatsApp number, etc., please contact the receipt-issuing centre for correction.
+              </li>
+              <li>Donations received on or after April 1, 2026 are governed by the Income-tax Act, 2025.</li>
+            </ul>
           </div>
 
           {/* Support */}
-          <div style={{ marginTop: '20px', textAlign: 'center' }}>
-            <h3 style={{ fontSize: '20px', marginBottom: '10px' }}>Support</h3>
-            <p style={{ fontSize: '14px' }}>
-              For more information please contact us for assistance.
+          <div style={{ marginTop: '20px', textAlign: 'center', padding: '16px', backgroundColor: '#FFFBEB', borderRadius: '12px', border: '1px solid #FEF3C7' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '6px', color: '#1F2937' }}>Donor Support</h3>
+            <p style={{ fontSize: '14px', color: '#4B5563', margin: 0 }}>
+              For more information please Call <strong><a href="tel:+918369161527" style={{ color: '#D97706', textDecoration: 'none' }}>+91-8369161527</a></strong> from Monday to Saturday between 9:00am to 6:00pm
             </p>
           </div>
         </div>
